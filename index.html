@@ -2,1088 +2,1544 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>单元十九 热闹的夜市 - 森林跑酷学习乐园</title>
-    <!-- Google Fonts & Canvas Confetti -->
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Noto+Sans+SC:wght@400;700;900&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>单元十九 热闹的夜市 - 恐龙 3D 寻宝大冒险</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti CDN -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <!-- Three.js 3D Engine -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
     <style>
-        :root {
-            --bg-color: #F0F7F4;
-            --primary: #4CAF50;
-            --secondary: #81C784;
-            --accent: #A5D6A7;
-            --mint: #C8E6C9;
-            --sky: #E8F5E9;
-            --purple: #B39DDB;
-            --dark-text: #2E4033;
-            --white: #FFFFFF;
-            --shadow: 0 8px 20px rgba(76, 175, 80, 0.2);
-            --radius: 24px;
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #0ea5e9 0%, #10b981 50%, #fef08a 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            user-select: none;
+        }
+        .font-fredoka { font-family: 'Fredoka One', cursive; }
+        
+        .island-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border: 4px solid #10b981;
+            box-shadow: 0 15px 35px -5px rgba(16, 185, 129, 0.4);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans SC', 'Fredoka One', sans-serif; user-select: none; }
-        body { background-color: var(--bg-color); color: var(--dark-text); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
-        
-        .screen { display: none; padding: 15px; max-width: 900px; margin: 0 auto; width: 100%; animation: fadeIn 0.3s ease-in-out; }
-        .screen.active { display: block; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .card { background: var(--white); border-radius: var(--radius); padding: 25px; box-shadow: var(--shadow); border: 4px solid #C8E6C9; margin-bottom: 20px; position: relative; }
-        .btn { background: var(--primary); color: white; border: none; padding: 14px 28px; border-radius: 50px; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 6px 0 #388E3C; margin: 5px; }
-        .btn:hover { transform: translateY(-3px); filter: brightness(1.05); }
-        .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #388E3C; }
-        .btn-secondary { background: #FFB74D; color: #5D4037; box-shadow: 0 6px 0 #F57C00; }
-        .btn-purple { background: #B39DDB; color: white; box-shadow: 0 6px 0 #8E24AA; }
-        .btn-warning { background: #81C784; color: white; box-shadow: 0 6px 0 #4CAF50; }
-        .btn-danger { background: #E57373; color: white; box-shadow: 0 6px 0 #D32F2F; }
-        .btn-jump { background: #FF7043; color: white; box-shadow: 0 6px 0 #D84315; font-size: 1.5rem; padding: 18px 40px; border-radius: 30px; width: 100%; margin-top: 10px; }
-
-        .badge { background: var(--accent); padding: 6px 16px; border-radius: 20px; font-weight: bold; font-size: 0.9rem; color: #1B5E20; display: inline-block; }
-        
-        h1 { font-size: 2.2rem; color: #2E7D32; text-align: center; margin-bottom: 10px; text-shadow: 2px 2px 0px #FFF; }
-        h2 { font-size: 1.5rem; color: var(--dark-text); margin-bottom: 15px; }
-        .subtitle { text-align: center; color: #667C6B; font-size: 1.1rem; margin-bottom: 20px; }
-
-        input[type="text"], input[type="password"], select {
-            width: 100%; padding: 12px 18px; border: 3px solid var(--accent); border-radius: 16px; font-size: 1rem; outline: none; transition: 0.2s; background: #FFFDF9; margin-top: 6px; margin-bottom: 12px;
+        .btn-bounce {
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+        }
+        .btn-bounce:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
+        }
+        .btn-bounce:active {
+            transform: translateY(1px) scale(0.98);
         }
 
-        /* 2D Canvas Forest Area */
-        #game-container {
-            position: relative;
+        #three-canvas-container {
             width: 100%;
-            height: 320px;
-            background: linear-gradient(to bottom, #132a13, #31572c, #4f772d);
-            border-radius: 20px;
-            overflow: hidden;
-            border: 4px solid #4CAF50;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.25);
-        }
-        canvas { display: block; width: 100%; height: 100%; }
-
-        /* HUD Overlay */
-        .hud-overlay {
+            height: 100%;
             position: absolute;
-            top: 12px;
-            left: 15px;
-            right: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 10;
-            pointer-events: none;
-        }
-        .hud-box {
-            background: rgba(255, 255, 255, 0.92);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 1.1rem;
-            color: #2E4033;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            top: 0;
+            left: 0;
+            z-index: 0;
         }
 
-        /* Quiz Overlay Popup */
-        #quiz-modal {
-            display: none;
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(4px);
-            z-index: 100;
-            padding: 15px;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #10b981; border-radius: 10px; }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 5px #10b981; }
+            50% { box-shadow: 0 0 20px #10b981, 0 0 25px #fef08a; }
+            100% { box-shadow: 0 0 5px #10b981; }
         }
-        #quiz-card {
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            width: 100%;
-            max-width: 600px;
-            border: 4px solid #81C784;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            text-align: center;
-            max-height: 95%;
-            overflow-y: auto;
-        }
-
-        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        @media (max-width: 600px) { .options-grid { grid-template-columns: 1fr; } }
-        
-        .option-btn { background: #FFF; border: 3px solid #C8E6C9; border-radius: 14px; padding: 12px; font-size: 1.1rem; font-weight: bold; text-align: left; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 10px; }
-        .option-btn:hover { border-color: var(--primary); background: #E8F5E9; }
-        .option-btn.correct { border-color: #4CAF50 !important; background: #E8F5E9 !important; color: #2E7D32; }
-        .option-btn.wrong { border-color: #E57373 !important; background: #FFEBEE !important; color: #C62828; }
-
-        .dash-tabs { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 20px; }
-        .tab-btn { padding: 10px 20px; background: #E8F5E9; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; }
-        .tab-btn.active { background: var(--primary); color: white; }
-
-        .editor-slot { background: #FFFDF9; border: 2px solid #C8E6C9; border-radius: 16px; padding: 15px; margin-bottom: 20px; text-align: left; }
-        .image-editor-box { background: #F0F7F4; padding: 12px; border-radius: 12px; border: 2px dashed #A5D6A7; margin: 10px 0; }
-        .preview-thumb { max-width: 100px; max-height: 100px; border-radius: 8px; border: 2px solid #DDD; margin-top: 8px; }
-
-        .lb-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        .lb-table th, .lb-table td { padding: 10px; text-align: left; border-bottom: 1px solid #EEE; }
-        .lb-table th { background: #E8F5E9; color: var(--dark-text); font-weight: bold; }
-
-        .sound-toggle { position: fixed; top: 15px; right: 15px; z-index: 1000; background: white; border: 2px solid var(--accent); border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.3rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .glow-found { animation: pulseGlow 1.5s infinite; }
     </style>
 </head>
-<body>
+<body class="text-gray-800 p-2 md:p-4 flex flex-col justify-between min-h-screen relative">
 
-    <button class="sound-toggle" onclick="toggleMute()" id="muteBtn" title="切换声音">🔊</button>
-
-    <!-- 1. HOMEPAGE -->
-    <div id="screen-home" class="screen active">
-        <div class="card" style="text-align: center;">
-            <div style="font-size: 3.5rem; margin-bottom: 10px;">🐰🌳🌲🍢</div>
-            <span class="badge" id="disp-subject-year">华语 | 二年级</span>
-            <h1 id="disp-title" style="margin-top: 10px;">单元十九 热闹的夜市</h1>
-            <p class="subtitle">指导老师：<span id="disp-teacher">许老师</span></p>
-
-            <div style="max-width: 380px; margin: 0 auto 20px auto;">
-                <label style="font-weight: bold; display: block; text-align: left; margin-bottom: 5px;">请输入学生姓名：</label>
-                <input type="text" id="player-name" placeholder="例如：小明 / Ali">
-            </div>
-
-            <div style="display: flex; flex-direction: column; gap: 10px; max-width: 380px; margin: 0 auto;">
-                <button class="btn" onclick="startRunnerGame()">🚀 开始森林跑酷</button>
-                <button class="btn btn-secondary" onclick="showScreen('screen-leaderboard')">🏆 浏览排行榜</button>
-                <button class="btn btn-purple" onclick="showInstructions()">📖 游戏规则说明</button>
-                <button class="btn btn-warning" onclick="promptTeacherPin()">🔒 教师管理后台</button>
+    <!-- Header HUD -->
+    <header class="max-w-6xl mx-auto w-full flex justify-between items-center bg-white/90 p-3 rounded-3xl border-2 border-emerald-500 shadow-md mb-2 z-20 relative backdrop-blur-md">
+        <div class="flex items-center space-x-3">
+            <span class="text-3xl md:text-4xl">🦖</span>
+            <div>
+                <h1 id="app-header-title" class="text-lg md:text-2xl font-black text-emerald-800 leading-tight">单元十九 热闹的夜市</h1>
+                <p id="app-header-sub" class="text-xs md:text-sm text-emerald-700/80 font-bold">华语 | 二年级 | 教师: 许老师</p>
             </div>
         </div>
-    </div>
+        <div class="flex items-center space-x-2">
+            <button id="btn-sound" onclick="toggleAudio()" class="btn-bounce bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold p-2.5 rounded-2xl border-2 border-emerald-300 text-base">
+                🔊
+            </button>
+            <button onclick="openTeacherPinModal()" class="btn-bounce bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 md:px-4 rounded-2xl shadow-md text-xs md:text-sm flex items-center">
+                🔒 教师后台
+            </button>
+        </div>
+    </header>
 
-    <!-- 2. GAME RUNNER SCREEN -->
-    <div id="screen-game" class="screen">
-        <div class="card" style="padding: 15px;">
-            <div id="game-container">
-                <div class="hud-overlay">
-                    <div class="hud-box">生命: <span id="hud-lives">❤️❤️❤️</span></div>
-                    <div class="hud-box">倒计时: <span id="hud-timer" style="color: #FF7043;">5s</span></div>
-                    <div class="hud-box">得分: <span id="hud-score" style="color:#2E7D32;">0</span></div>
-                </div>
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-5xl mx-auto w-full flex-grow flex flex-col justify-center relative z-10 my-1">
 
-                <canvas id="runnerCanvas" width="800" height="320"></canvas>
+        <!-- 1. HOMEPAGE VIEW -->
+        <section id="view-home" class="island-card rounded-3xl p-6 md:p-8 text-center relative overflow-hidden my-auto">
+            <div class="inline-block bg-emerald-100 text-emerald-900 font-extrabold px-4 py-1.5 rounded-full text-xs md:text-sm mb-4 border-2 border-emerald-400 shadow-sm">
+                🦖 3D 恐龙森林寻宝大冒险 (3D Dinosaur Treasure Hunt) 🔎
+            </div>
+            
+            <h2 id="home-game-title" class="text-3xl md:text-5xl font-black text-emerald-700 mb-2">单元十九 热闹的夜市</h2>
+            <p id="home-topic" class="text-gray-700 mb-6 text-sm md:text-lg font-bold">解答 13 道问题解锁宝箱，收集全部 13 个森林秘宝助小恐龙逃脱！</p>
 
-                <!-- Quiz Popup Overlay -->
-                <div id="quiz-modal">
-                    <div id="quiz-card">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                            <span class="badge">答题赚分 (+10分)</span>
-                            <span style="font-weight: bold; color: #2E7D32;" id="quiz-progress">问题 1 / 10</span>
+            <div class="max-w-sm mx-auto bg-emerald-50/90 p-4 rounded-2xl border-2 border-emerald-300 mb-6 shadow-inner">
+                <label for="pupil-name" class="block text-left text-xs md:text-sm font-bold text-emerald-900 mb-2">🦖 请输入小探险家名字 (Pupil Name):</label>
+                <input type="text" id="pupil-name" placeholder="例如: 小明 / Ming" class="w-full px-4 py-3 rounded-xl border-2 border-emerald-400 focus:outline-none focus:border-emerald-600 text-center font-black text-lg shadow-sm">
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-lg mx-auto">
+                <button onclick="startGame()" class="btn-bounce bg-emerald-500 hover:bg-emerald-600 text-white font-black py-4 px-6 rounded-2xl shadow-lg border-b-4 border-emerald-700 text-lg flex flex-col items-center justify-center">
+                    <span class="text-2xl mb-1">🎮</span> 开始 3D 寻宝
+                </button>
+                <button onclick="showInstructions()" class="btn-bounce bg-sky-500 hover:bg-sky-600 text-white font-black py-4 px-6 rounded-2xl shadow-lg border-b-4 border-sky-700 text-lg flex flex-col items-center justify-center">
+                    <span class="text-2xl mb-1">📜</span> 寻宝指南
+                </button>
+                <button onclick="showLeaderboard()" class="btn-bounce bg-amber-500 hover:bg-amber-600 text-white font-black py-4 px-6 rounded-2xl shadow-lg border-b-4 border-amber-700 text-lg flex flex-col items-center justify-center">
+                    <span class="text-2xl mb-1">🏆</span> 英雄榜
+                </button>
+            </div>
+        </section>
+
+        <!-- 2. 3D GAMEPLAY VIEW -->
+        <section id="view-game" class="hidden relative rounded-3xl overflow-hidden h-[78vh] min-h-[520px] border-4 border-emerald-500 shadow-2xl">
+            <!-- 3D Three.js Canvas Container -->
+            <div id="three-canvas-container"></div>
+
+            <!-- PERMANENT TREASURE MISSION CHECKLIST AT TOP -->
+            <div class="absolute top-2 left-2 right-2 z-20 pointer-events-none">
+                <div class="bg-white/95 backdrop-blur-md p-2.5 rounded-2xl border-2 border-emerald-500 shadow-xl pointer-events-auto max-w-3xl mx-auto">
+                    
+                    <!-- Checklist Header & Dual Progress Trackers -->
+                    <div class="flex justify-between items-center mb-1.5 border-b pb-1.5 border-emerald-200">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-lg">🔎</span>
+                            <span class="text-xs md:text-sm font-black text-emerald-900">TREASURES TO FIND (秘宝清单)</span>
+                            <button onclick="toggleChecklistCollapse()" class="text-xs bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold px-2 py-0.5 rounded-lg border border-emerald-300">
+                                <span id="checklist-toggle-icon">▼ 展开/折叠</span>
+                            </button>
                         </div>
-                        <h2 id="q-text" style="font-size: 1.3rem; margin-bottom: 10px;">题目加载中...</h2>
-                        <div id="q-img-box" style="display: none; margin: 10px 0;"><img id="q-img" style="max-height: 120px; border-radius: 10px;" src=""></div>
-                        <div class="options-grid" id="options-container"></div>
-                        <div id="explanation-box" style="display: none; margin-top: 12px; padding: 10px; background: #FFF9C4; border-radius: 10px; border: 2px solid #FBC02D; text-align: left; font-size: 0.95rem;">
-                            <strong>💡 解析：</strong> <span id="exp-text"></span>
+                        
+                        <!-- Dual Counters Required by Guideline 4 -->
+                        <div class="flex items-center space-x-3 text-xs md:text-sm font-black">
+                            <span class="bg-blue-100 text-blue-900 px-2 py-1 rounded-xl border border-blue-300">
+                                ❓ QUESTIONS: <span id="hud-q-count" class="text-blue-700">0</span>/13
+                            </span>
+                            <span class="bg-amber-100 text-amber-900 px-2 py-1 rounded-xl border border-amber-300">
+                                💎 TREASURES: <span id="hud-t-count" class="text-amber-700">0</span>/13
+                            </span>
                         </div>
-                        <div style="text-align: right; margin-top: 12px;">
-                            <button class="btn btn-secondary" id="next-btn" style="display: none;" onclick="continueRunner()">继续跑酷 ➔</button>
-                        </div>
+                    </div>
+
+                    <!-- Scrollable / Collapsible Checklist Grid -->
+                    <div id="checklist-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5 max-h-24 overflow-y-auto custom-scrollbar text-xs">
+                        <!-- Dynamic Checklist Items Injected Here -->
                     </div>
                 </div>
             </div>
 
-            <!-- Jump Button -->
-            <button class="btn btn-jump" id="jumpBtn" onclick="triggerJump()">🦘 点击跳跃 (JUMP) / 按空格键</button>
-        </div>
-    </div>
-
-    <!-- 3. RESULT SCREEN -->
-    <div id="screen-result" class="screen">
-        <div class="card" style="text-align: center;">
-            <div style="font-size: 4rem;" id="res-emoji">🎉</div>
-            <h1 id="res-title">游戏结束！</h1>
-            <p class="subtitle" id="res-subtitle">森林跑酷顺利完成！</p>
-
-            <div style="background: #E8F5E9; padding: 20px; border-radius: 16px; margin: 20px 0; display: inline-block; width: 100%; max-width: 400px;">
-                <p style="font-size: 1.2rem; margin-bottom: 8px;">总得分: <strong style="color: #2E7D32; font-size: 1.8rem;" id="res-score">0</strong></p>
-                <p style="font-size: 1rem; color: #4B6050;">答对题数: <span id="res-correct">0</span> / 10 | 用时: <span id="res-time">0秒</span></p>
+            <!-- PROMPT INTERACTION BUTTON (NEAR QUESTION OR NEAR CHEST OR EXIT GATE) -->
+            <div id="near-interaction-prompt" class="hidden absolute bottom-20 left-1/2 -translate-x-1/2 z-20">
+                <button id="btn-interaction-action" onclick="handleCurrentInteraction()" class="btn-bounce bg-amber-500 hover:bg-amber-600 text-white font-black px-6 py-3 rounded-2xl border-4 border-amber-200 shadow-2xl text-base md:text-lg flex items-center space-x-2 animate-bounce">
+                    <span id="prompt-icon">❓</span>
+                    <span id="prompt-text">点击进行答题挑战</span>
+                </button>
             </div>
 
-            <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
-                <button class="btn" onclick="showScreen('screen-home')">🏠 返回主页</button>
-                <button class="btn btn-secondary" onclick="showScreen('screen-leaderboard')">🏆 查看排行榜</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 4. LEADERBOARD SCREEN -->
-    <div id="screen-leaderboard" class="screen">
-        <div class="card">
-            <button class="btn btn-secondary" style="padding: 6px 15px; font-size: 0.9rem;" onclick="showScreen('screen-home')">⬅ 返回主页</button>
-            <h1 style="margin-top: 10px;">🏆 学习英雄榜</h1>
-            <div style="overflow-x: auto;">
-                <table class="lb-table">
-                    <thead>
-                        <tr>
-                            <th>名次</th>
-                            <th>学生姓名</th>
-                            <th>总得分</th>
-                            <th>答对题数</th>
-                            <th>总用时</th>
-                        </tr>
-                    </thead>
-                    <tbody id="lb-body"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- 5. TEACHER DASHBOARD -->
-    <div id="screen-dashboard" class="screen">
-        <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h1>🔒 教师控制台 (Teacher Dashboard)</h1>
-                <button class="btn btn-danger" style="padding: 6px 15px; font-size: 0.9rem;" onclick="showScreen('screen-home')">退出后台</button>
-            </div>
-
-            <div class="dash-tabs">
-                <button class="tab-btn active" onclick="switchDashTab('tab-general')">⚙ 基础设置</button>
-                <button class="tab-btn" onclick="switchDashTab('tab-q1')">📝 修改题目 (10题)</button>
-                <button class="tab-btn" onclick="switchDashTab('tab-analytics')">📊 班级错题分析</button>
-                <button class="tab-btn" onclick="switchDashTab('tab-data')">💾 JSON备份/Firebase</button>
-            </div>
-
-            <div id="tab-general" class="dash-content">
-                <h2>游戏基本信息设置</h2>
-                <label>游戏标题：</label><input type="text" id="cfg-title">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div><label>科目：</label><input type="text" id="cfg-subject"></div>
-                    <div><label>年级：</label><input type="text" id="cfg-year"></div>
+            <!-- TOUCH CONTROLS -->
+            <div class="absolute bottom-3 left-3 z-10 flex space-x-2 md:hidden">
+                <div class="grid grid-cols-3 gap-1 bg-white/80 p-1.5 rounded-2xl border border-emerald-300 backdrop-blur-sm">
+                    <div></div>
+                    <button id="btn-up" class="w-10 h-10 bg-emerald-600 text-white font-bold rounded-xl active:bg-emerald-800 flex items-center justify-center text-lg">▲</button>
+                    <div></div>
+                    <button id="btn-left" class="w-10 h-10 bg-emerald-600 text-white font-bold rounded-xl active:bg-emerald-800 flex items-center justify-center text-lg">◄</button>
+                    <button id="btn-down" class="w-10 h-10 bg-emerald-600 text-white font-bold rounded-xl active:bg-emerald-800 flex items-center justify-center text-lg">▼</button>
+                    <button id="btn-right" class="w-10 h-10 bg-emerald-600 text-white font-bold rounded-xl active:bg-emerald-800 flex items-center justify-center text-lg">►</button>
                 </div>
-                <label>教师姓名：</label><input type="text" id="cfg-teacher">
-                <button class="btn btn-secondary" onclick="saveGeneralConfig()">💾 保存基本配置</button>
             </div>
 
-            <div id="tab-q1" class="dash-content" style="display: none;"></div>
-
-            <div id="tab-analytics" class="dash-content" style="display: none;">
-                <h2>班级高频错题记录</h2>
-                <div id="analytics-list"></div>
+            <div class="absolute bottom-3 right-3 z-10 md:hidden">
+                <button onclick="triggerDinoJump()" class="w-14 h-14 bg-amber-500 text-white font-black rounded-full border-2 border-white shadow-lg active:scale-95 flex items-center justify-center text-xs">
+                    JUMP
+                </button>
             </div>
+        </section>
 
-            <div id="tab-data" class="dash-content" style="display: none;">
-                <h2>数据备份与导入导出 (JSON)</h2>
-                <div style="display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap;">
-                    <button class="btn" onclick="exportDataJSON()">📥 导出游戏文件 (JSON)</button>
-                    <button class="btn btn-purple" onclick="document.getElementById('file-import-json').click()">📤 导入游戏文件 (JSON)</button>
-                    <input type="file" id="file-import-json" accept=".json" style="display:none" onchange="importDataJSON(event)">
-                    <button class="btn btn-danger" onclick="resetLeaderboard()">🗑 清空排行榜数据</button>
-                    <button class="btn btn-warning" onclick="restoreDefaults()">🔄 恢复系统初始模版</button>
+        <!-- 3. QUESTION MODAL PANEL -->
+        <div id="modal-question" class="hidden fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-50">
+            <div class="bg-white rounded-3xl p-6 max-w-xl w-full border-4 border-emerald-500 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
+                
+                <div class="flex justify-between items-center border-b-2 border-emerald-200 pb-3 mb-4">
+                    <span class="bg-emerald-100 text-emerald-800 font-bold px-3 py-1 rounded-full text-xs">
+                        🦖 森林卡片关卡 <span id="q-modal-num">1</span>/13
+                    </span>
+                    <button onclick="closeQuestionModal()" class="text-gray-400 hover:text-gray-600 font-bold text-lg">✕</button>
                 </div>
-                <hr style="margin: 20px 0; border: 1px solid #EEE;">
-                <h2>Firebase 实时云端数据库设置 (选填)</h2>
-                <label>Firebase Realtime Database URL:</label>
-                <input type="text" id="cfg-fb-url" placeholder="https://your-db-name.firebaseio.com">
-                <button class="btn btn-secondary" onclick="saveFirebaseConfig()">💾 保存云端连接配置</button>
+
+                <!-- Question Image Slot -->
+                <div id="q-img-container" class="mb-4 hidden flex justify-center">
+                    <img id="q-img" src="" alt="Question Image" class="max-h-48 rounded-xl border-2 border-gray-200 shadow-md object-contain">
+                </div>
+
+                <!-- Question Text -->
+                <h3 id="q-text" class="text-lg md:text-xl font-black text-gray-800 leading-relaxed text-center mb-6">
+                    加载中...
+                </h3>
+
+                <!-- Answer Options -->
+                <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                    <!-- Buttons Injected dynamically -->
+                </div>
+
+                <!-- Feedback Area -->
+                <div id="feedback-box" class="hidden p-4 rounded-2xl text-center font-bold mb-4">
+                    <p id="feedback-text" class="text-base md:text-lg mb-1"></p>
+                    <p id="feedback-explanation" class="text-xs md:text-sm font-normal opacity-90"></p>
+                </div>
+
+                <!-- Continue Button -->
+                <div class="flex justify-end">
+                    <button id="btn-next" onclick="confirmQuestionAndContinue()" class="hidden btn-bounce bg-emerald-500 hover:bg-emerald-600 text-white font-black py-3 px-6 rounded-2xl shadow-md border-b-4 border-emerald-700">
+                        去寻找宝箱 ➔
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. VICTORY ESCAPE RESULT VIEW -->
+        <section id="view-result" class="hidden island-card rounded-3xl p-6 md:p-10 text-center my-auto">
+            <div class="text-6xl mb-2">🦖💎👑</div>
+            <h2 class="text-2xl md:text-4xl font-black text-emerald-700 mb-2">🏆 逃脱成功！ALL TREASURES FOUND!</h2>
+            <p class="text-gray-700 mb-6 font-bold">太棒了！你答对了所有 13 道题目，收集了全部 13 个森林秘宝，成功帮助小恐龙逃离森林！</p>
+
+            <div class="bg-white/90 p-6 rounded-2xl border-2 border-emerald-300 max-w-md mx-auto mb-6 space-y-3 shadow-md">
+                <div class="flex justify-between text-base border-b pb-2">
+                    <span class="text-gray-600">探险家姓名:</span>
+                    <span id="res-name" class="font-black text-gray-800"></span>
+                </div>
+                <div class="flex justify-between text-base border-b pb-2">
+                    <span class="text-gray-600">完成问题:</span>
+                    <span id="res-qcount" class="font-black text-blue-600">13 / 13 ✅</span>
+                </div>
+                <div class="flex justify-between text-base border-b pb-2">
+                    <span class="text-gray-600">秘宝清单:</span>
+                    <span id="res-tcount" class="font-black text-amber-600">13 / 13 ✅</span>
+                </div>
+                <div class="flex justify-between text-base">
+                    <span class="text-gray-600">总用时:</span>
+                    <span id="res-time" class="font-black text-sky-600"></span>
+                </div>
+            </div>
+
+            <div class="flex justify-center space-x-4">
+                <button onclick="startGame()" class="btn-bounce bg-emerald-500 hover:bg-emerald-600 text-white font-black py-3 px-6 rounded-2xl shadow-md">
+                    🔄 再玩一次 (Play Again)
+                </button>
+                <button onclick="showLeaderboard()" class="btn-bounce bg-amber-500 hover:bg-amber-600 text-white font-black py-3 px-6 rounded-2xl shadow-md">
+                    🏆 英雄榜
+                </button>
+            </div>
+        </section>
+
+        <!-- 5. LEADERBOARD VIEW -->
+        <section id="view-leaderboard" class="hidden island-card rounded-3xl p-6 md:p-8 my-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-black text-emerald-700 flex items-center">
+                    🏆 寻宝英雄榜 (Leaderboard)
+                </h2>
+                <button onclick="showHome()" class="text-gray-500 hover:text-gray-700 font-bold">✕ 关闭</button>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-emerald-300 overflow-hidden shadow-inner mb-6">
+                <div class="max-h-80 overflow-y-auto custom-scrollbar">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-emerald-100 text-emerald-900 text-sm font-bold border-b border-emerald-200">
+                                <th class="p-3 text-center">排名</th>
+                                <th class="p-3">探险家</th>
+                                <th class="p-3 text-center">秘宝 💎</th>
+                                <th class="p-3 text-center">用时</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboard-body">
+                            <!-- Injected dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button onclick="showHome()" class="btn-bounce bg-emerald-500 hover:bg-emerald-600 text-white font-black py-3 px-8 rounded-2xl shadow-md">
+                    返回主页
+                </button>
+            </div>
+        </section>
+
+        <!-- 6. PROTECTED TEACHER DASHBOARD VIEW -->
+        <section id="view-dashboard" class="hidden island-card rounded-3xl p-4 md:p-8 max-w-4xl mx-auto my-auto">
+            <div class="flex justify-between items-center border-b-2 border-emerald-200 pb-4 mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-purple-700">🔒 教师管理后台 (Teacher Dashboard)</h2>
+                    <p class="text-xs text-gray-500">编辑题目、双模式图片上传与管理数据</p>
+                </div>
+                <button onclick="showHome()" class="btn-bounce bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-xl text-sm">
+                    退出后台
+                </button>
+            </div>
+
+            <div class="bg-purple-50 p-4 rounded-2xl border border-purple-200 mb-6">
+                <h3 class="font-bold text-purple-800 mb-3 text-sm">📌 单元与课程全局设置</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                    <div>
+                        <label class="block font-bold text-gray-600 mb-1">游戏标题:</label>
+                        <input type="text" id="cfg-title" class="w-full p-2 rounded-lg border focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-600 mb-1">科目:</label>
+                        <input type="text" id="cfg-subject" class="w-full p-2 rounded-lg border focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-600 mb-1">年级:</label>
+                        <input type="text" id="cfg-standard" class="w-full p-2 rounded-lg border focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-600 mb-1">教师姓名:</label>
+                        <input type="text" id="cfg-teacher" class="w-full p-2 rounded-lg border focus:outline-none">
+                    </div>
+                </div>
+                <button onclick="saveGlobalConfig()" class="mt-3 btn-bounce bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold py-2 px-4 rounded-lg">
+                    保存全局设置
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200 text-xs">
+                    <h4 class="font-bold text-amber-800 mb-1">📊 错题统计 Analysis</h4>
+                    <div id="analytics-summary" class="text-gray-600">加载中...</div>
+                </div>
+                <div class="bg-blue-50 p-4 rounded-2xl border border-blue-200 text-xs flex flex-col justify-between">
+                    <div>
+                        <h4 class="font-bold text-blue-800 mb-1">💾 数据备份 & 导出</h4>
+                        <p class="text-gray-500 mb-2">导出JSON文件备份当前题目及设置。</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="exportDataJSON()" class="btn-bounce bg-blue-500 text-white p-2 rounded-lg font-bold w-full">导出 JSON</button>
+                        <label class="btn-bounce bg-blue-600 text-white p-2 rounded-lg font-bold w-full text-center cursor-pointer">
+                            导入 JSON
+                            <input type="file" accept=".json" onchange="importDataJSON(event)" class="hidden">
+                        </label>
+                    </div>
+                </div>
+                <div class="bg-red-50 p-4 rounded-2xl border border-red-200 text-xs flex flex-col justify-between">
+                    <div>
+                        <h4 class="font-bold text-red-800 mb-1">⚠️ 重置排行榜</h4>
+                        <p class="text-gray-500 mb-2">清空所有学生成绩与排行榜数据。</p>
+                    </div>
+                    <button onclick="resetLeaderboard()" class="btn-bounce bg-red-500 text-white p-2 rounded-lg font-bold">重置 Leaderboard</button>
+                </div>
+            </div>
+
+            <div class="border-t-2 border-emerald-200 pt-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-emerald-800 text-lg">📝 题目列表与多模式图片编辑器</h3>
+                    <button onclick="addNewQuestion()" class="btn-bounce bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold py-2 px-4 rounded-xl">
+                        + 添加新题目
+                    </button>
+                </div>
+
+                <div id="dashboard-questions-list" class="space-y-6 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                    <!-- Dynamic Question Cards -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="text-center text-xs text-gray-700 font-bold mt-2 mb-1 z-10 relative">
+        二年级华语互动教学系统 &copy; 2026 | Dinosaur 3D Island Treasure Hunt
+    </footer>
+
+    <!-- MODAL: PIN INPUT FOR TEACHER DASHBOARD -->
+    <div id="modal-pin" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center border-4 border-purple-300 shadow-2xl">
+            <span class="text-4xl block mb-2">🔐</span>
+            <h3 class="text-xl font-bold text-purple-700 mb-2">请输入教师 PIN 码</h3>
+            <p class="text-xs text-gray-500 mb-4">默认 PIN: 1234</p>
+            <input type="password" id="input-pin" maxlength="6" placeholder="****" class="w-full text-center text-2xl font-bold border-2 border-purple-300 rounded-xl p-2 mb-4 focus:outline-none">
+            <div class="flex justify-end space-x-2">
+                <button onclick="closeTeacherPinModal()" class="px-4 py-2 bg-gray-200 text-gray-700 font-bold rounded-xl text-sm">取消</button>
+                <button onclick="verifyTeacherPin()" class="px-4 py-2 bg-purple-600 text-white font-bold rounded-xl text-sm btn-bounce">进入后台</button>
             </div>
         </div>
     </div>
 
+    <!-- MODAL: GAME INSTRUCTIONS -->
+    <div id="modal-instructions" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-3xl p-6 max-w-md w-full border-4 border-emerald-500 shadow-2xl">
+            <h3 class="text-xl font-bold text-emerald-800 mb-3 flex items-center">📜 3D 恐龙寻宝指南</h3>
+            <ul class="text-sm text-gray-700 space-y-2 mb-6 list-disc list-inside font-bold">
+                <li>控制 3D 小恐龙在森林里自由探索。</li>
+                <li>走向 <strong>❓ 问号挑战点</strong>，回答语文问题。</li>
+                <li>答对后，对应位置的 <strong>🎁 宝箱</strong> 会解除封印。</li>
+                <li>走到宝箱前点击 <strong>“开启宝箱”</strong> 收集秘宝。</li>
+                <li>顶部的 <strong>🔎 TREASURES TO FIND 清单</strong> 会实时更新为 ✅ FOUND!</li>
+                <li>收集全部 13 个秘宝后，走向 <strong>⛩️ 森林出口大门</strong> 即可逃脱胜利！</li>
+            </ul>
+            <button onclick="closeInstructions()" class="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-black rounded-2xl btn-bounce">
+                开始探险！
+            </button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT APPLICATION CODE -->
     <script>
-        // --- 1. DEFAULT QUESTIONS (RESTORED EXACT QUESTIONS) ---
+        // ==========================================
+        // 1. EXACT ORIGINAL QUESTIONS & 13 TREASURE ITEMS
+        // ==========================================
         const DEFAULT_APP_DATA = {
             config: {
                 title: "单元十九 热闹的夜市",
                 subject: "华语",
-                year: "二年级",
-                teacher: "许老师",
-                firebaseUrl: ""
+                standard: "二年级",
+                topic: "热闹的夜市",
+                teacher: "许老师"
             },
-            questions: {
-                level1: [
-                    { q: "夜市里人山人海，出售的美食______，让人流口水。", img: "", options: ["多不胜数", "古色古香", "五颜六色", "一般般"], ans: 0, exp: "“多不胜数”形容数量极其繁多。", score: 10 },
-                    { q: "妈妈在夜市买了一把新______子给我吃饭用。", img: "", options: ["筷", "快", "卖", "买"], ans: 0, exp: "用餐工具为“筷子”。", score: 10 },
-                    { q: "夜市入口处挂满了______的灯笼，非常好看。", img: "", options: ["五颜六色", "多不胜数", "古色古香", "一般般"], ans: 0, exp: "“五颜六色”形容色彩多样鲜艳。", score: 10 },
-                    { q: "这家小吃店的装修风格显得______，富有传统特色。", img: "", options: ["古色古香", "五颜六色", "多不胜数", "一般般"], ans: 0, exp: "“古色古香”形容富有古雅色彩或情调。", score: 10 },
-                    { q: "小明走路的速度非常______，一会儿就跑远了。", img: "", options: ["快", "筷", "般", "古"], ans: 0, exp: "速度高为“快”。", score: 10 },
-                    { q: "摊主在夜市里大声喊着，准备______完所有的水果。", img: "", options: ["卖", "买", "般", "舌"], ans: 0, exp: "出售货物为“卖”。", score: 10 },
-                    { q: "我们用嘴巴和______来品尝夜市里的美味食物。", img: "", options: ["舌头", "古", "船", "筷"], ans: 0, exp: "品尝食物的味觉器官为“舌头”。", score: 10 },
-                    { q: "我们搭乘小______穿过河流，前往河畔夜市。", img: "", options: ["船", "般", "快", "买"], ans: 0, exp: "水上交通工具为“船”。", score: 10 },
-                    { q: "这里的夜市和普通的夜市不太一______，特别热闹。", img: "", options: ["般", "船", "筷", "卖"], ans: 0, exp: "“一般”表示普通、同样。", score: 10 },
-                    { q: "弟弟拿了零用钱，向摊贩______了一份美味的章鱼烧。", img: "", options: ["买", "卖", "古", "舌"], ans: 0, exp: "购买货物为“买”。", score: 10 }
-                ]
-            },
-            leaderboard: [],
-            mistakes: {}
+            questions: [
+                {
+                    id: 1,
+                    text: "夜市里传来________的叫卖声，吸引了许多顾客。",
+                    image: "",
+                    options: ["清脆响亮", "小巧可爱"],
+                    answer: 0,
+                    marks: 10,
+                    explanation: "'清脆响亮'常用来形容声音清晰高亢，适合形容夜市叫卖声。",
+                    treasure: { name: "🪙 黄金金币", icon: "🪙" }
+                },
+                {
+                    id: 2,
+                    text: "夜市里有许多顾客，大家一边购物，一边聊天，显得________。",
+                    image: "",
+                    options: ["价格合理", "吵吵闹闹"],
+                    answer: 1,
+                    marks: 10,
+                    explanation: "'吵吵闹闹'形容人群喧哗热闹的场景。",
+                    treasure: { name: "🗺️ 远古藏宝图", icon: "🗺️" }
+                },
+                {
+                    id: 3,
+                    text: "夜市的摊位挂着________的灯饰，看起来非常漂亮。",
+                    image: "",
+                    options: ["圆滚滚", "五颜六色"],
+                    answer: 1,
+                    marks: 10,
+                    explanation: "'五颜六色'形容灯饰色彩丰富美丽。",
+                    treasure: { name: "🗝️ 魔法钥匙", icon: "🗝️" }
+                },
+                {
+                    id: 4,
+                    text: "庆典摊位上挂满了________的气球，十分吸引人。",
+                    image: "",
+                    options: ["五彩缤纷", "冰冰凉凉"],
+                    answer: 0,
+                    marks: 10,
+                    explanation: "'五彩缤纷'形容气球色彩绚丽多种多样。",
+                    treasure: { name: "💎 闪耀水晶", icon: "💎" }
+                },
+                {
+                    id: 5,
+                    text: "玩具摊上摆着________的玩具，吸引了许多小朋友。",
+                    image: "",
+                    options: ["热腾腾", "色彩鲜艳"],
+                    answer: 1,
+                    marks: 10,
+                    explanation: "'色彩鲜艳'形容玩具颜色鲜明好看。",
+                    treasure: { name: "🧪 魔法药水", icon: "🧪" }
+                },
+                {
+                    id: 6,
+                    text: "这个摊位上的________的玩偶，深受小朋友的喜爱。",
+                    image: "",
+                    options: ["小巧可爱", "清脆响亮"],
+                    answer: 0,
+                    marks: 10,
+                    explanation: "'小巧可爱'适合形容体积小巧、招人喜欢的玩偶。",
+                    treasure: { name: "🧭 黄金罗盘", icon: "🧭" }
+                },
+                {
+                    id: 7,
+                    text: "摊主把一个个________的鱼丸放进锅里煮。",
+                    image: "",
+                    options: ["圆滚滚", "吵吵闹闹"],
+                    answer: 0,
+                    marks: 10,
+                    explanation: "'圆滚滚'形容鱼丸形状圆润。",
+                    treasure: { name: "👑 龙族皇冠", icon: "👑" }
+                },
+                {
+                    id: 8,
+                    text: "这双筷子制作得十分________，每个细节都很精致。",
+                    image: "",
+                    options: ["冰冰凉凉", "手工精细"],
+                    answer: 1,
+                    marks: 10,
+                    explanation: "'手工精细'形容做工细腻考究。",
+                    treasure: { name: "💍 力量戒环", icon: "💍" }
+                },
+                {
+                    id: 9,
+                    text: "摊主刚炒好一盘________的炒面，香气扑鼻。",
+                    image: "",
+                    options: ["清脆响亮", "热腾腾"],
+                    answer: 1,
+                    marks: 10,
+                    explanation: "'热腾腾'形容刚出锅的食物冒着热气、十分香浓。",
+                    treasure: { name: "🔮 预测水晶球", icon: "🔮" }
+                },
+                {
+                    id: 10,
+                    text: "天气炎热，我买了一杯________的果汁来解渴。",
+                    image: "",
+                    options: ["冰冰凉凉", "手工精细"],
+                    answer: 0,
+                    marks: 10,
+                    explanation: "'冰冰凉凉'形容果汁冰凉清爽。",
+                    treasure: { name: "📜 远古卷轴", icon: "📜" }
+                },
+                {
+                    id: 11,
+                    text: "夜市里有________的商品，让顾客看得眼花缭乱。",
+                    image: "",
+                    options: ["清脆响亮", "各式各样"],
+                    answer: 1,
+                    marks: 10,
+                    explanation: "'各式各样'形容商品种类繁多。",
+                    treasure: { name: "📿 珍珠项链", icon: "📿" }
+                },
+                {
+                    id: 12,
+                    text: "夜市里的货品________，让顾客有很多选择。",
+                    image: "",
+                    options: ["冰冰凉凉", "多不胜数"],
+                    answer: 1,
+                    marks: 10,
+                    explanation: "'多不胜数'形容商品数量非常多。",
+                    treasure: { name: "🪄 魔法权杖", icon: "🪄" }
+                },
+                {
+                    id: 13,
+                    text: "这个摊位出售________的玩具，平时很难见到。",
+                    image: "",
+                    options: ["平时少见", "吵吵闹闹"],
+                    answer: 0,
+                    marks: 10,
+                    explanation: "'平时少见'形容罕见、不寻常。",
+                    treasure: { name: "🥚 恐龙神蛋", icon: "🥚" }
+                }
+            ]
         };
 
-        let appData = {};
-        let currentUser = { name: "", score: 0 };
-        let isMuted = false;
+        // Persistent App State
+        let appData = null;
+        let leaderboardData = [];
+        let errorAnalytics = {};
 
-        // Sound Effects (Web Audio API)
+        // Active Game State
+        let currentPupilName = "";
+        let answeredQuestions = new Set(); // Set of Q indices
+        let collectedTreasures = new Set(); // Set of T indices
+        let unlockedChests = new Set(); // Set of Chest indices ready to open
+        let activeQuestionIndex = -1;
+        let activeChestIndex = -1;
+        let isNearExitGate = false;
+
+        let timerSeconds = 0;
+        let timerInterval = null;
+        let isMuted = false;
+        let checklistCollapsed = false;
+
+        // ==========================================
+        // 2. AUDIO SYNTHESIZER
+        // ==========================================
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         let audioCtx = null;
 
+        function initAudioCtx() { if (!audioCtx) audioCtx = new AudioCtx(); }
+
+        function toggleAudio() {
+            isMuted = !isMuted;
+            document.getElementById('btn-sound').innerText = isMuted ? '🔇' : '🔊';
+        }
+
         function playSound(type) {
             if (isMuted) return;
-            try {
-                if (!audioCtx) audioCtx = new AudioCtx();
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
+            initAudioCtx();
+            if (!audioCtx) return;
 
-                if (type === 'jump') {
-                    osc.frequency.setValueAtTime(160, audioCtx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(450, audioCtx.currentTime + 0.15);
-                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-                    osc.start(); osc.stop(audioCtx.currentTime + 0.15);
-                } else if (type === 'hit') {
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(120, audioCtx.currentTime);
-                    osc.frequency.linearRampToValueAtTime(40, audioCtx.currentTime + 0.25);
-                    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
-                    osc.start(); osc.stop(audioCtx.currentTime + 0.25);
-                } else if (type === 'correct') {
-                    osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
-                    osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
-                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-                    osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-                } else if (type === 'wrong') {
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(220, audioCtx.currentTime);
-                    osc.frequency.setValueAtTime(174.61, audioCtx.currentTime + 0.15);
-                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-                    osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-                } else if (type === 'lifeup') {
-                    osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-                    osc.frequency.setValueAtTime(600, audioCtx.currentTime + 0.1);
-                    osc.frequency.setValueAtTime(800, audioCtx.currentTime + 0.2);
-                    gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
-                    osc.start(); osc.stop(audioCtx.currentTime + 0.35);
-                }
-            } catch (e) {}
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.exponentialRampToValueAtTime(880, now + 0.15);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } else if (type === 'treasure') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.setValueAtTime(659.25, now + 0.1);
+                osc.frequency.setValueAtTime(783.99, now + 0.2);
+                osc.frequency.setValueAtTime(1046.50, now + 0.3);
+                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                osc.start(now);
+                osc.stop(now + 0.5);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.setValueAtTime(174.61, now + 0.15);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                osc.start(now);
+                osc.stop(now + 0.35);
+            } else if (type === 'click') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(400, now);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                osc.start(now);
+                osc.stop(now + 0.05);
+            }
         }
 
-        function toggleMute() {
-            isMuted = !isMuted;
-            document.getElementById('muteBtn').innerText = isMuted ? "🔇" : "🔊";
-        }
-
-        function initStorage() {
-            const local = localStorage.getItem('CHINESE_FOREST_RUNNER');
-            if (local) {
-                try { appData = JSON.parse(local); } catch(e) { appData = JSON.parse(JSON.stringify(DEFAULT_APP_DATA)); }
+        // ==========================================
+        // 3. PERSISTENT STORAGE
+        // ==========================================
+        function initDataStore() {
+            const localData = localStorage.getItem('zh_nightmarket_dino_appData');
+            if (localData) {
+                try { appData = JSON.parse(localData); } catch (e) { appData = JSON.parse(JSON.stringify(DEFAULT_APP_DATA)); }
             } else {
                 appData = JSON.parse(JSON.stringify(DEFAULT_APP_DATA));
-                saveDataLocally();
+                saveAppData();
             }
-            renderHomepageInfo();
+
+            const localLB = localStorage.getItem('zh_nightmarket_dino_leaderboard');
+            if (localLB) { try { leaderboardData = JSON.parse(localLB); } catch (e) { leaderboardData = []; } }
+
+            const localAnalytics = localStorage.getItem('zh_nightmarket_dino_analytics');
+            if (localAnalytics) { try { errorAnalytics = JSON.parse(localAnalytics); } catch (e) { errorAnalytics = {}; } }
+
+            updateUIHeader();
         }
 
-        function saveDataLocally() {
-            localStorage.setItem('CHINESE_FOREST_RUNNER', JSON.stringify(appData));
+        function saveAppData() {
+            localStorage.setItem('zh_nightmarket_dino_appData', JSON.stringify(appData));
+            updateUIHeader();
         }
 
-        function showScreen(screenId) {
-            playSound('click');
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(screenId).classList.add('active');
-            if (screenId === 'screen-leaderboard') renderLeaderboard();
+        function saveLeaderboard() {
+            localStorage.setItem('zh_nightmarket_dino_leaderboard', JSON.stringify(leaderboardData));
         }
 
-        function renderHomepageInfo() {
-            document.getElementById('disp-title').innerText = appData.config.title;
-            document.getElementById('disp-subject-year').innerText = `${appData.config.subject} | ${appData.config.year}`;
-            document.getElementById('disp-teacher').innerText = appData.config.teacher;
+        function saveAnalytics() {
+            localStorage.setItem('zh_nightmarket_dino_analytics', JSON.stringify(errorAnalytics));
+        }
+
+        function updateUIHeader() {
+            if (!appData || !appData.config) return;
+            document.getElementById('app-header-title').innerText = appData.config.title;
+            document.getElementById('app-header-sub').innerText = `${appData.config.subject} | ${appData.config.standard} | 教师: ${appData.config.teacher}`;
+            document.getElementById('home-game-title').innerText = appData.config.title;
+        }
+
+        // ==========================================
+        // 4. NAVIGATION & VIEWS
+        // ==========================================
+        function hideAllViews() {
+            ['view-home', 'view-game', 'view-result', 'view-leaderboard', 'view-dashboard'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+        }
+
+        function showHome() {
+            hideAllViews();
+            document.getElementById('view-home').classList.remove('hidden');
+            if (timerInterval) clearInterval(timerInterval);
         }
 
         function showInstructions() {
-            alert("📖 游戏规则说明：\n\n1. 控制 3D 可爱小兔子在神秘森林里跑酷，躲避森林怪兽。\n2. 每隔 5 秒会自动弹出一道华语问题，答对获得 10 分！\n3. 初始拥有 3 条生命（❤️❤️❤️）。每答对 3 道题自动奖励 1 条生命！\n4. 触碰到怪兽会扣除 1 条生命！\n5. 可以点击【点击跳跃】按钮、按空格键或向上方向键跳跃！");
+            playSound('click');
+            document.getElementById('modal-instructions').classList.remove('hidden');
         }
 
-        // --- 2D CANVAS 3D-STYLE FOREST GAME LOOP ---
-        let canvas, ctx;
-        let gameRunning = false;
-        let quizPaused = false;
-        let lives = 3;
-        let score = 0;
-        let currentQIndex = 0;
-        let correctCount = 0;
-        let gameStartTime = 0;
-        let timerCountdown = 5; // 5 SECONDS TIMER INTERVAL
-        let timerInterval = null;
-        let animFrameCounter = 0;
+        function closeInstructions() {
+            playSound('click');
+            document.getElementById('modal-instructions').classList.add('hidden');
+        }
 
-        // 3D Bunny Character Object
-        const player = {
-            x: 90,
-            y: 195,
-            width: 46,
-            height: 52,
-            velocityY: 0,
-            gravity: 0.7,
-            jumpPower: -13.5,
-            isGrounded: true,
-            invulnerableTimer: 0
-        };
+        function showLeaderboard() {
+            playSound('click');
+            hideAllViews();
+            renderLeaderboardTable();
+            document.getElementById('view-leaderboard').classList.remove('hidden');
+        }
 
-        let monsters = [];
-        let backgroundOffset = 0;
-        let monsterSpawnTimer = 0;
+        // ==========================================
+        // 5. 3D DINOSAUR FOREST ENGINE (THREE.JS)
+        // ==========================================
+        let scene, camera, renderer;
+        let dinoMesh, questionMarkers = [], chestObjects = [], exitGateMesh;
+        let dinoPos = { x: 0, z: 14 }, dinoVelocityY = 0, isJumping = false;
+        let keysPressed = {};
+        let animationFrameId = null;
 
-        function startRunnerGame() {
-            const name = document.getElementById('player-name').value.trim();
-            if (!name) { alert("请输入学生姓名！"); return; }
-            currentUser.name = name;
+        function initThreeJS() {
+            const container = document.getElementById('three-canvas-container');
+            container.innerHTML = '';
 
-            showScreen('screen-game');
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x38bdf8); // Sky blue
+            scene.fog = new THREE.FogExp2(0x38bdf8, 0.015);
+
+            camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.shadowMap.enabled = true;
+            container.appendChild(renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+            scene.add(ambientLight);
+
+            const sunLight = new THREE.DirectionalLight(0xfef08a, 0.9);
+            sunLight.position.set(30, 50, 20);
+            sunLight.castShadow = true;
+            scene.add(sunLight);
+
+            buildForestIsland();
+            buildDinosaurMesh();
+            buildExitGate();
+            buildQuestionsAndChests();
+
+            window.addEventListener('resize', onWindowResize);
+            window.addEventListener('keydown', (e) => { keysPressed[e.key.toLowerCase()] = true; if(e.key === ' ') triggerDinoJump(); });
+            window.addEventListener('keyup', (e) => { keysPressed[e.key.toLowerCase()] = false; });
+
+            setupTouchEvents();
+
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            animate3D();
+        }
+
+        function buildForestIsland() {
+            // Grass Island Ground
+            const islandGeo = new THREE.CylinderGeometry(26, 30, 3, 32);
+            const islandMat = new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.8 }); // Emerald grass
+            const island = new THREE.Mesh(islandGeo, islandMat);
+            island.position.y = -1.5;
+            island.receiveShadow = true;
+            scene.add(island);
+
+            // Ocean Surroundings
+            const oceanGeo = new THREE.PlaneGeometry(300, 300);
+            const oceanMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, transparent: true, opacity: 0.8 });
+            const ocean = new THREE.Mesh(oceanGeo, oceanMat);
+            ocean.rotation.x = -Math.PI / 2;
+            ocean.position.y = -2.2;
+            scene.add(ocean);
+
+            // Add Pine & Jungle Trees
+            for (let i = 0; i < 14; i++) {
+                const angle = (i / 14) * Math.PI * 2;
+                const radius = 18 + Math.sin(i) * 3;
+                createTree(Math.cos(angle) * radius, Math.sin(angle) * radius);
+            }
+        }
+
+        function createTree(x, z) {
+            const group = new THREE.Group();
             
-            canvas = document.getElementById('runnerCanvas');
-            ctx = canvas.getContext('2d');
+            const trunkGeo = new THREE.CylinderGeometry(0.4, 0.6, 4, 8);
+            const trunkMat = new THREE.MeshStandardMaterial({ color: 0x78350f });
+            const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+            trunk.position.y = 2;
+            group.add(trunk);
 
-            // Reset Game State
-            lives = 3;
-            score = 0;
-            currentQIndex = 0;
-            correctCount = 0;
-            gameStartTime = Date.now();
-            timerCountdown = 5;
-            monsters = [];
-            player.y = 195;
-            player.velocityY = 0;
-            player.isGrounded = true;
+            const leavesGeo = new THREE.ConeGeometry(2, 5, 8);
+            const leavesMat = new THREE.MeshStandardMaterial({ color: 0x15803d });
+            const leaves = new THREE.Mesh(leavesGeo, leavesMat);
+            leaves.position.y = 5.5;
+            group.add(leaves);
 
-            updateHUD();
-            gameRunning = true;
-            quizPaused = false;
-
-            startQuestionTimer();
-            requestAnimationFrame(gameLoop);
+            group.position.set(x, 0, z);
+            scene.add(group);
         }
 
-        function triggerJump() {
-            if (player.isGrounded && !quizPaused && gameRunning) {
-                player.velocityY = player.jumpPower;
-                player.isGrounded = false;
-                playSound('jump');
-            }
+        function buildDinosaurMesh() {
+            const group = new THREE.Group();
+
+            // Cute Green T-Rex Body
+            const bodyGeo = new THREE.SphereGeometry(0.8, 16, 16);
+            const bodyMat = new THREE.MeshStandardMaterial({ color: 0x10b981 }); // Cute Green
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            body.position.y = 1.0;
+            group.add(body);
+
+            // Dino Head
+            const headGeo = new THREE.BoxGeometry(0.9, 0.7, 1.1);
+            const head = new THREE.Mesh(headGeo, bodyMat);
+            head.position.set(0, 1.8, 0.3);
+            group.add(head);
+
+            // Eyes
+            const eyeGeo = new THREE.SphereGeometry(0.12, 8, 8);
+            const eyeMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+            const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
+            leftEye.position.set(-0.35, 1.95, 0.7);
+            group.add(leftEye);
+
+            const rightEye = new THREE.Mesh(eyeGeo, eyeMat);
+            rightEye.position.set(0.35, 1.95, 0.7);
+            group.add(rightEye);
+
+            group.position.set(dinoPos.x, 0, dinoPos.z);
+            scene.add(group);
+            dinoMesh = group;
         }
 
-        window.addEventListener('keydown', function(e) {
-            if (e.code === 'Space' || e.code === 'ArrowUp') {
-                e.preventDefault();
-                triggerJump();
-            }
-        });
+        function buildExitGate() {
+            const group = new THREE.Group();
 
-        document.getElementById('runnerCanvas').addEventListener('touchstart', function(e) {
-            e.preventDefault();
-            triggerJump();
-        });
+            // Gate Pillars
+            const pillarGeo = new THREE.BoxGeometry(0.8, 5, 0.8);
+            const pillarMat = new THREE.MeshStandardMaterial({ color: 0x475569 }); // Slate Stone
+            
+            const p1 = new THREE.Mesh(pillarGeo, pillarMat);
+            p1.position.set(-2, 2.5, 0);
+            group.add(p1);
 
-        function startQuestionTimer() {
-            if (timerInterval) clearInterval(timerInterval);
-            timerCountdown = 5;
-            document.getElementById('hud-timer').innerText = `${timerCountdown}s`;
+            const p2 = new THREE.Mesh(pillarGeo, pillarMat);
+            p2.position.set(2, 2.5, 0);
+            group.add(p2);
 
-            timerInterval = setInterval(() => {
-                if (!quizPaused && gameRunning) {
-                    timerCountdown--;
-                    document.getElementById('hud-timer').innerText = `${timerCountdown}s`;
-                    if (timerCountdown <= 0) {
-                        triggerQuizPopup();
-                    }
-                }
-            }, 1000);
+            // Arch Top
+            const archGeo = new THREE.BoxGeometry(4.8, 0.8, 0.8);
+            const arch = new THREE.Mesh(archGeo, pillarMat);
+            arch.position.set(0, 5, 0);
+            group.add(arch);
+
+            // Locked Red Door Bar
+            const doorGeo = new THREE.BoxGeometry(3.6, 3, 0.2);
+            const doorMat = new THREE.MeshStandardMaterial({ color: 0xef4444, transparent: true, opacity: 0.8 });
+            const door = new THREE.Mesh(doorGeo, doorMat);
+            door.position.set(0, 2, 0);
+            group.add(door);
+
+            group.position.set(0, 0, -22); // Forest exit position
+            scene.add(group);
+            exitGateMesh = group;
         }
 
-        function gameLoop() {
-            if (!gameRunning) return;
+        function buildQuestionsAndChests() {
+            questionMarkers = [];
+            chestObjects = [];
+            const questions = appData.questions;
 
-            if (!quizPaused) {
-                animFrameCounter++;
-                updatePhysics();
-            }
-            renderForestCanvas();
+            questions.forEach((q, idx) => {
+                const angle = (idx / questions.length) * Math.PI * 2;
+                const radius = 10 + (idx % 2) * 4;
+                const qx = Math.cos(angle) * radius;
+                const qz = Math.sin(angle) * radius;
 
-            requestAnimationFrame(gameLoop);
-        }
+                // 1. Question Marker (❓ Box)
+                const qGroup = new THREE.Group();
+                const qGeo = new THREE.BoxGeometry(1, 1, 1);
+                const qMat = new THREE.MeshStandardMaterial({ color: 0x3b82f6, emissive: 0x1d4ed8 });
+                const qMesh = new THREE.Mesh(qGeo, qMat);
+                qMesh.position.y = 1.8;
+                qGroup.add(qMesh);
 
-        function updatePhysics() {
-            player.velocityY += player.gravity;
-            player.y += player.velocityY;
+                qGroup.position.set(qx, 0, qz);
+                scene.add(qGroup);
 
-            const groundY = 195;
-            if (player.y >= groundY) {
-                player.y = groundY;
-                player.velocityY = 0;
-                player.isGrounded = true;
-            }
+                questionMarkers.push({ mesh: qGroup, index: idx, id: q.id, pos: { x: qx, z: qz } });
 
-            if (player.invulnerableTimer > 0) player.invulnerableTimer--;
+                // 2. Chest Object (🎁 Box placed near question)
+                const chestGroup = new THREE.Group();
+                const chestGeo = new THREE.BoxGeometry(1.2, 0.9, 0.9);
+                const chestMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.4 }); // Gold Chest
+                const chestMesh = new THREE.Mesh(chestGeo, chestMat);
+                chestMesh.position.y = 0.45;
+                chestGroup.add(chestMesh);
 
-            backgroundOffset = (backgroundOffset + 2.5) % canvas.width;
+                // Chest placed slightly behind question marker
+                const cx = qx + Math.cos(angle) * 2;
+                const cz = qz + Math.sin(angle) * 2;
+                chestGroup.position.set(cx, 0, cz);
+                chestGroup.visible = false; // Hidden until question answered correctly
+                scene.add(chestGroup);
 
-            monsterSpawnTimer++;
-            if (monsterSpawnTimer > 130) {
-                monsters.push({
-                    x: canvas.width + 30,
-                    y: 205,
-                    width: 40,
-                    height: 40,
-                    speed: 4.2
-                });
-                monsterSpawnTimer = 0;
-            }
-
-            for (let i = monsters.length - 1; i >= 0; i--) {
-                monsters[i].x -= monsters[i].speed;
-
-                if (player.invulnerableTimer <= 0 &&
-                    player.x < monsters[i].x + monsters[i].width &&
-                    player.x + player.width > monsters[i].x &&
-                    player.y < monsters[i].y + monsters[i].height &&
-                    player.y + player.height > monsters[i].y) {
-                    
-                    lives--;
-                    playSound('hit');
-                    player.invulnerableTimer = 45;
-                    updateHUD();
-
-                    if (lives <= 0) {
-                        endGame();
-                        return;
-                    }
-                }
-
-                if (monsters[i].x < -60) {
-                    monsters.splice(i, 1);
-                }
-            }
-        }
-
-        // --- RENDER 3D-STYLE FOREST, BUNNY & MONSTERS ---
-        function renderForestCanvas() {
-            // 1. Forest Deep Sky
-            let skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            skyGrad.addColorStop(0, "#0b1d12");
-            skyGrad.addColorStop(0.6, "#1e3f20");
-            skyGrad.addColorStop(1, "#2d5a27");
-            ctx.fillStyle = skyGrad;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // 2. Parallax Distant 3D Forest Trees
-            for (let i = -backgroundOffset * 0.5; i < canvas.width + 100; i += 90) {
-                ctx.fillStyle = "#143319";
-                ctx.beginPath();
-                ctx.moveTo(i, 250);
-                ctx.lineTo(i + 45, 70);
-                ctx.lineTo(i + 90, 250);
-                ctx.fill();
-            }
-
-            // 3. Foreground Trees & Canopy
-            for (let i = -backgroundOffset; i < canvas.width + 120; i += 130) {
-                // Tree Trunk with 3D Bark Shading
-                let trunkGrad = ctx.createLinearGradient(i + 35, 0, i + 55, 0);
-                trunkGrad.addColorStop(0, "#2c1a0e");
-                trunkGrad.addColorStop(0.5, "#4e3219");
-                trunkGrad.addColorStop(1, "#231309");
-                ctx.fillStyle = trunkGrad;
-                ctx.fillRect(i + 35, 110, 20, 140);
-
-                // Leaf Canopy Spheres
-                let leafGrad = ctx.createRadialGradient(i + 45, 90, 10, i + 45, 90, 45);
-                leafGrad.addColorStop(0, "#81c784");
-                leafGrad.addColorStop(0.7, "#388e3c");
-                leafGrad.addColorStop(1, "#1b5e20");
-                ctx.fillStyle = leafGrad;
-                ctx.beginPath();
-                ctx.arc(i + 45, 90, 42, 0, Math.PI * 2);
-                ctx.fill();
-            }
-
-            // 4. Ground Pathways with Grass Details
-            let groundGrad = ctx.createLinearGradient(0, 245, 0, canvas.height);
-            groundGrad.addColorStop(0, "#388e3c");
-            groundGrad.addColorStop(0.2, "#2e7d32");
-            groundGrad.addColorStop(1, "#1b431e");
-            ctx.fillStyle = groundGrad;
-            ctx.fillRect(0, 245, canvas.width, 75);
-
-            // Grass Path Top Rim
-            ctx.fillStyle = "#a5d6a7";
-            ctx.fillRect(0, 245, canvas.width, 5);
-
-            // 5. DRAW 3D CUTE BUNNY
-            if (player.invulnerableTimer % 6 < 3) {
-                const px = player.x;
-                const py = player.y;
-
-                // Bunny Bounce Offset during Run
-                const runBounce = player.isGrounded ? Math.sin(animFrameCounter * 0.3) * 3 : 0;
-
-                // 3D Ear Shadow / Spherical Radial Shading
-                let earGrad = ctx.createLinearGradient(px + 10, py - 25, px + 25, py);
-                earGrad.addColorStop(0, "#ffffff");
-                earGrad.addColorStop(0.7, "#f5f5f5");
-                earGrad.addColorStop(1, "#d0d0d0");
-
-                // Outer Ears
-                ctx.fillStyle = earGrad;
-                ctx.beginPath();
-                ctx.ellipse(px + 14, py - 16 + runBounce, 7, 18, -0.1, 0, Math.PI * 2);
-                ctx.ellipse(px + 30, py - 16 + runBounce, 7, 18, 0.1, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Inner Pink Ears
-                ctx.fillStyle = "#ffb7b2";
-                ctx.beginPath();
-                ctx.ellipse(px + 14, py - 16 + runBounce, 3.5, 12, -0.1, 0, Math.PI * 2);
-                ctx.ellipse(px + 30, py - 16 + runBounce, 3.5, 12, 0.1, 0, Math.PI * 2);
-                ctx.fill();
-
-                // 3D Bunny Spherical Body
-                let bodyGrad = ctx.createRadialGradient(px + 20, py + 22 + runBounce, 5, px + 22, py + 24 + runBounce, 25);
-                bodyGrad.addColorStop(0, "#ffffff");
-                bodyGrad.addColorStop(0.75, "#eaeaea");
-                bodyGrad.addColorStop(1, "#b5b5b5");
-                ctx.fillStyle = bodyGrad;
-                ctx.beginPath();
-                ctx.arc(px + 22, py + 26 + runBounce, 22, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Cute Cheeks
-                ctx.fillStyle = "rgba(255, 182, 193, 0.6)";
-                ctx.beginPath();
-                ctx.arc(px + 12, py + 26 + runBounce, 5, 0, Math.PI * 2);
-                ctx.arc(px + 32, py + 26 + runBounce, 5, 0, Math.PI * 2);
-                ctx.fill();
-
-                // 3D Glowing Eyes
-                ctx.fillStyle = "#2c1a0e";
-                ctx.beginPath();
-                ctx.arc(px + 30, py + 22 + runBounce, 4, 0, Math.PI * 2);
-                ctx.fill();
-                // Eye Catchlight
-                ctx.fillStyle = "#ffffff";
-                ctx.beginPath();
-                ctx.arc(px + 31, py + 20 + runBounce, 1.5, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Cute Nose
-                ctx.fillStyle = "#ff8b94";
-                ctx.beginPath();
-                ctx.arc(px + 36, py + 26 + runBounce, 2.5, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Fluffy Bunny Tail
-                let tailGrad = ctx.createRadialGradient(px, py + 28 + runBounce, 2, px, py + 28 + runBounce, 8);
-                tailGrad.addColorStop(0, "#ffffff");
-                tailGrad.addColorStop(1, "#cccccc");
-                ctx.fillStyle = tailGrad;
-                ctx.beginPath();
-                ctx.arc(px - 2, py + 28 + runBounce, 7, 0, Math.PI * 2);
-                ctx.fill();
-            }
-
-            // 6. DRAW 3D FOREST MONSTERS
-            monsters.forEach(m => {
-                const mx = m.x;
-                const my = m.y;
-
-                // 3D Monster Radial Gradient
-                let monsterGrad = ctx.createRadialGradient(mx + 12, my + 12, 4, mx + 20, my + 20, 22);
-                monsterGrad.addColorStop(0, "#ff5252");
-                monsterGrad.addColorStop(0.7, "#d32f2f");
-                monsterGrad.addColorStop(1, "#5f0909");
-                ctx.fillStyle = monsterGrad;
-                ctx.beginPath();
-                ctx.arc(mx + 20, my + 20, 20, 0, Math.PI * 2);
-                ctx.fill();
-
-                // 3D Horns / Spikes
-                ctx.fillStyle = "#ffb74d";
-                ctx.beginPath();
-                ctx.moveTo(mx + 10, my + 5);
-                ctx.lineTo(mx + 15, my - 8);
-                ctx.lineTo(mx + 20, my + 3);
-                ctx.fill();
-
-                ctx.beginPath();
-                ctx.moveTo(mx + 22, my + 3);
-                ctx.lineTo(mx + 28, my - 8);
-                ctx.lineTo(mx + 32, my + 6);
-                ctx.fill();
-
-                // Glowing Monster Eye
-                ctx.fillStyle = "#fff";
-                ctx.beginPath();
-                ctx.arc(mx + 14, my + 15, 6, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.fillStyle = "#000";
-                ctx.beginPath();
-                ctx.arc(mx + 12, my + 15, 2.5, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Fangs
-                ctx.fillStyle = "#fff";
-                ctx.beginPath();
-                ctx.moveTo(mx + 12, my + 26);
-                ctx.lineTo(mx + 15, my + 32);
-                ctx.lineTo(mx + 18, my + 26);
-                ctx.fill();
+                chestObjects.push({ mesh: chestGroup, index: idx, id: q.id, pos: { x: cx, z: cz }, item: q.treasure || { name: `宝物 ${idx+1}`, icon: "🎁" } });
             });
         }
 
-        function updateHUD() {
-            let hearts = "";
-            for (let i = 0; i < lives; i++) hearts += "❤️";
-            document.getElementById('hud-lives').innerText = hearts || "💀";
-            document.getElementById('hud-score').innerText = score;
+        function triggerDinoJump() {
+            if (!isJumping) {
+                dinoVelocityY = 0.22;
+                isJumping = true;
+            }
         }
 
-        // --- QUIZ POPUP OVERLAY ENGINE ---
-        function triggerQuizPopup() {
-            quizPaused = true;
-            document.getElementById('quiz-modal').style.display = 'flex';
+        function setupTouchEvents() {
+            const bindBtn = (id, key) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.addEventListener('touchstart', (e) => { e.preventDefault(); keysPressed[key] = true; });
+                el.addEventListener('touchend', (e) => { e.preventDefault(); keysPressed[key] = false; });
+            };
+            bindBtn('btn-up', 'w');
+            bindBtn('btn-left', 'a');
+            bindBtn('btn-down', 's');
+            bindBtn('btn-right', 'd');
+        }
 
-            const questions = appData.questions.level1;
-            if (currentQIndex >= questions.length) {
-                endGame();
+        function animate3D() {
+            animationFrameId = requestAnimationFrame(animate3D);
+
+            const moveSpeed = 0.18;
+            let dx = 0, dz = 0;
+
+            if (keysPressed['w'] || keysPressed['arrowup']) dz -= moveSpeed;
+            if (keysPressed['s'] || keysPressed['arrowdown']) dz += moveSpeed;
+            if (keysPressed['a'] || keysPressed['arrowleft']) dx -= moveSpeed;
+            if (keysPressed['d'] || keysPressed['arrowright']) dx += moveSpeed;
+
+            dinoPos.x += dx;
+            dinoPos.z += dz;
+
+            // Island Boundary
+            const distFromCenter = Math.hypot(dinoPos.x, dinoPos.z);
+            if (distFromCenter > 22) {
+                dinoPos.x = (dinoPos.x / distFromCenter) * 22;
+                dinoPos.z = (dinoPos.z / distFromCenter) * 22;
+            }
+
+            // Jump Physics
+            if (isJumping) {
+                dinoMesh.position.y += dinoVelocityY;
+                dinoVelocityY -= 0.015;
+                if (dinoMesh.position.y <= 0) {
+                    dinoMesh.position.y = 0;
+                    isJumping = false;
+                }
+            }
+
+            dinoMesh.position.x = dinoPos.x;
+            dinoMesh.position.z = dinoPos.z;
+
+            if (dx !== 0 || dz !== 0) {
+                dinoMesh.rotation.y = Math.atan2(dx, dz);
+            }
+
+            // Camera follow dino
+            camera.position.set(dinoPos.x, dinoMesh.position.y + 11, dinoPos.z + 13);
+            camera.lookAt(dinoPos.x, dinoMesh.position.y + 1, dinoPos.z);
+
+            // Rotate Question Markers
+            questionMarkers.forEach(qm => {
+                qm.mesh.children[0].rotation.y += 0.03;
+            });
+
+            // Check Proximity to Questions, Unlocked Chests, and Exit Gate
+            checkProximities();
+
+            renderer.render(scene, camera);
+        }
+
+        function checkProximities() {
+            activeQuestionIndex = -1;
+            activeChestIndex = -1;
+            isNearExitGate = false;
+
+            // 1. Check Questions
+            questionMarkers.forEach(qm => {
+                if (answeredQuestions.has(qm.index)) return;
+                const dist = Math.hypot(dinoPos.x - qm.pos.x, dinoPos.z - qm.pos.z);
+                if (dist < 2.5) activeQuestionIndex = qm.index;
+            });
+
+            // 2. Check Unlocked Chests
+            chestObjects.forEach(co => {
+                if (!unlockedChests.has(co.index) || collectedTreasures.has(co.index)) return;
+                const dist = Math.hypot(dinoPos.x - co.pos.x, dinoPos.z - co.pos.z);
+                if (dist < 2.5) activeChestIndex = co.index;
+            });
+
+            // 3. Check Exit Gate Proximity
+            const distToGate = Math.hypot(dinoPos.x - 0, dinoPos.z - (-22));
+            if (distToGate < 3.5) isNearExitGate = true;
+
+            updatePromptUI();
+        }
+
+        function updatePromptUI() {
+            const promptEl = document.getElementById('near-interaction-prompt');
+            const iconEl = document.getElementById('prompt-icon');
+            const textEl = document.getElementById('prompt-text');
+
+            if (activeQuestionIndex !== -1) {
+                iconEl.innerText = '❓';
+                textEl.innerText = `点击回答问题卡 ${activeQuestionIndex + 1}`;
+                promptEl.classList.remove('hidden');
+            } else if (activeChestIndex !== -1) {
+                iconEl.innerText = '🎁';
+                textEl.innerText = `点击开启宝箱收集【${chestObjects[activeChestIndex].item.name}】`;
+                promptEl.classList.remove('hidden');
+            } else if (isNearExitGate) {
+                iconEl.innerText = '⛩️';
+                if (answeredQuestions.size === 13 && collectedTreasures.size === 13) {
+                    textEl.innerText = '点击穿过出口大门顺利逃脱！';
+                } else {
+                    textEl.innerText = `出口大门封印中 (未集齐全部秘宝)`;
+                }
+                promptEl.classList.remove('hidden');
+            } else {
+                promptEl.classList.add('hidden');
+            }
+        }
+
+        function handleCurrentInteraction() {
+            if (activeQuestionIndex !== -1) {
+                openCurrentQuestionModal();
+            } else if (activeChestIndex !== -1) {
+                collectChestTreasure(activeChestIndex);
+            } else if (isNearExitGate) {
+                if (answeredQuestions.size === 13 && collectedTreasures.size === 13) {
+                    finishGame();
+                } else {
+                    alert("出口大门尚未开启！请先回答完 13 道题目并收集全部 13 个秘宝！");
+                }
+            }
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('three-canvas-container');
+            if (!container || !renderer) return;
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        // ==========================================
+        // 6. QUESTION & TREASURE CHECKLIST LOGIC
+        // ==========================================
+        function startGame() {
+            playSound('click');
+            const nameInput = document.getElementById('pupil-name').value.trim();
+            if (!nameInput) {
+                alert("请输入探险家名字！");
+                document.getElementById('pupil-name').focus();
                 return;
             }
 
-            const qData = questions[currentQIndex];
-            document.getElementById('quiz-progress').innerText = `问题 ${currentQIndex + 1} / ${questions.length}`;
-            document.getElementById('q-text').innerText = `${currentQIndex + 1}. ${qData.q}`;
-            document.getElementById('explanation-box').style.display = 'none';
-            document.getElementById('next-btn').style.display = 'none';
+            currentPupilName = nameInput;
+            answeredQuestions.clear();
+            collectedTreasures.clear();
+            unlockedChests.clear();
+            timerSeconds = 0;
 
-            const imgBox = document.getElementById('q-img-box');
-            if (qData.img) {
-                document.getElementById('q-img').src = qData.img;
-                imgBox.style.display = 'block';
-            } else {
-                imgBox.style.display = 'none';
-            }
+            renderChecklistUI();
+            updateCountersUI();
 
-            const optsContainer = document.getElementById('options-container');
-            optsContainer.innerHTML = '';
-            const prefixes = ['A', 'B', 'C', 'D'];
+            hideAllViews();
+            document.getElementById('view-game').classList.remove('hidden');
 
-            qData.options.forEach((optText, idx) => {
-                const btn = document.createElement('button');
-                btn.className = 'option-btn';
-                btn.innerHTML = `<span style="background: var(--accent); padding: 4px 8px; border-radius: 6px;">${prefixes[idx]}</span> ${optText}`;
-                btn.onclick = () => checkQuizAnswer(idx, btn);
-                optsContainer.appendChild(btn);
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timerSeconds++;
+            }, 1000);
+
+            setTimeout(initThreeJS, 100);
+        }
+
+        function renderChecklistUI() {
+            const grid = document.getElementById('checklist-grid');
+            grid.innerHTML = '';
+
+            appData.questions.forEach((q, idx) => {
+                const isFound = collectedTreasures.has(idx);
+                const tItem = q.treasure || { name: `秘宝 ${idx+1}`, icon: "🎁" };
+
+                const card = document.createElement('div');
+                card.className = `p-1.5 rounded-xl border flex items-center justify-between font-bold text-[11px] ${isFound ? 'bg-emerald-100 border-emerald-400 text-emerald-950 glow-found' : 'bg-gray-50 border-gray-200 text-gray-500'}`;
+                card.innerHTML = `
+                    <span class="truncate mr-1">${tItem.icon} ${tItem.name}</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded ${isFound ? 'bg-emerald-500 text-white font-black' : 'bg-gray-200 text-gray-600'}">
+                        ${isFound ? '✅ FOUND!' : '⬜ Not Found'}
+                    </span>
+                `;
+                grid.appendChild(card);
             });
         }
 
-        function checkQuizAnswer(selectedIdx, btnEl) {
-            const qData = appData.questions.level1[currentQIndex];
-            const allBtns = document.querySelectorAll('#options-container .option-btn');
-            allBtns.forEach(b => b.style.pointerEvents = 'none');
+        function toggleChecklistCollapse() {
+            checklistCollapsed = !checklistCollapsed;
+            const grid = document.getElementById('checklist-grid');
+            const icon = document.getElementById('checklist-toggle-icon');
+            if (checklistCollapsed) {
+                grid.classList.add('hidden');
+                icon.innerText = '▲ 展开';
+            } else {
+                grid.classList.remove('hidden');
+                icon.innerText = '▼ 折叠';
+            }
+        }
 
-            if (selectedIdx === qData.ans) {
-                btnEl.classList.add('correct');
-                score += (qData.score || 10);
-                correctCount++;
+        function updateCountersUI() {
+            document.getElementById('hud-q-count').innerText = answeredQuestions.size;
+            document.getElementById('hud-t-count').innerText = collectedTreasures.size;
+        }
 
-                // REWARD 1 LIFE FOR EVERY 3 CORRECT ANSWERS
-                if (correctCount % 3 === 0) {
-                    lives++;
-                    playSound('lifeup');
-                    confetti({ particleCount: 50, spread: 50, origin: { y: 0.5 } });
-                } else {
-                    playSound('correct');
+        function openCurrentQuestionModal() {
+            if (activeQuestionIndex === -1) return;
+            playSound('click');
+
+            const q = appData.questions[activeQuestionIndex];
+            document.getElementById('q-modal-num').innerText = activeQuestionIndex + 1;
+            document.getElementById('q-text').innerText = q.text;
+
+            const imgContainer = document.getElementById('q-img-container');
+            const imgEl = document.getElementById('q-img');
+            if (q.image && q.image.trim() !== '') {
+                imgEl.src = q.image;
+                imgContainer.classList.remove('hidden');
+            } else {
+                imgContainer.classList.add('hidden');
+            }
+
+            const optContainer = document.getElementById('options-container');
+            optContainer.innerHTML = '';
+
+            document.getElementById('feedback-box').classList.add('hidden');
+            document.getElementById('btn-next').classList.add('hidden');
+
+            const prefixes = ['A. ', 'B. '];
+            q.options.forEach((optText, optIdx) => {
+                const btn = document.createElement('button');
+                btn.className = "btn-bounce bg-emerald-50 hover:bg-emerald-100 text-emerald-950 border-2 border-emerald-400 font-bold p-3.5 rounded-2xl text-base text-left shadow-sm flex items-center w-full transition-all";
+                btn.innerHTML = `<span class="bg-emerald-600 text-white font-fredoka px-3 py-1 rounded-xl mr-3 text-sm">${prefixes[optIdx] || ''}</span> <span>${optText}</span>`;
+                btn.onclick = () => selectModalOption(optIdx);
+                optContainer.appendChild(btn);
+            });
+
+            document.getElementById('modal-question').classList.remove('hidden');
+        }
+
+        function closeQuestionModal() {
+            document.getElementById('modal-question').classList.add('hidden');
+        }
+
+        function selectModalOption(selectedIndex) {
+            const q = appData.questions[activeQuestionIndex];
+            const optButtons = document.getElementById('options-container').children;
+            const feedbackBox = document.getElementById('feedback-box');
+            const feedbackText = document.getElementById('feedback-text');
+            const feedbackExp = document.getElementById('feedback-explanation');
+
+            if (selectedIndex === q.answer) {
+                playSound('correct');
+
+                // Step 1: Mark question completed & reveal 3D Chest
+                if (!answeredQuestions.has(activeQuestionIndex)) {
+                    answeredQuestions.add(activeQuestionIndex);
+                    unlockedChests.add(activeQuestionIndex);
+
+                    // Reveal physical 3D Chest in Scene & hide Question Box
+                    if (chestObjects[activeQuestionIndex]) chestObjects[activeQuestionIndex].mesh.visible = true;
+                    if (questionMarkers[activeQuestionIndex]) questionMarkers[activeQuestionIndex].mesh.visible = false;
+
+                    updateCountersUI();
                 }
+
+                optButtons[selectedIndex].classList.remove('bg-emerald-50', 'hover:bg-emerald-100', 'border-emerald-400');
+                optButtons[selectedIndex].classList.add('bg-emerald-200', 'border-emerald-500', 'text-emerald-950');
+
+                feedbackBox.className = "p-4 rounded-2xl text-center font-bold mb-4 bg-emerald-100 border-2 border-emerald-500 text-emerald-900 shadow-md";
+                feedbackText.innerHTML = `✨ 回答正确！题目关卡完成！<br><span class="text-amber-700 text-sm">🎁 前方的秘宝宝箱已解除封印！快去开启宝箱吧！</span>`;
+                feedbackExp.innerText = q.explanation || "";
+                feedbackBox.classList.remove('hidden');
+
             } else {
                 playSound('wrong');
-                btnEl.classList.add('wrong');
-                allBtns[qData.ans].classList.add('correct');
 
-                const qKey = `Q${currentQIndex + 1}: ${qData.q}`;
-                appData.mistakes[qKey] = (appData.mistakes[qKey] || 0) + 1;
-                saveDataLocally();
+                errorAnalytics[q.id] = (errorAnalytics[q.id] || 0) + 1;
+                saveAnalytics();
+
+                optButtons[selectedIndex].classList.remove('bg-emerald-50', 'hover:bg-emerald-100', 'border-emerald-400');
+                optButtons[selectedIndex].classList.add('bg-red-200', 'border-red-500', 'text-red-900');
+
+                feedbackBox.className = "p-4 rounded-2xl text-center font-bold mb-4 bg-amber-100 border-2 border-amber-400 text-amber-900";
+                feedbackText.innerText = "💡 答案不对，请再试一次！";
+                feedbackExp.innerText = `正确答案是: ${q.options[q.answer]}。${q.explanation || ''}`;
+                feedbackBox.classList.remove('hidden');
             }
 
-            if (qData.exp) {
-                document.getElementById('exp-text').innerText = qData.exp;
-                document.getElementById('explanation-box').style.display = 'block';
-            }
-
-            document.getElementById('next-btn').style.display = 'inline-block';
-            updateHUD();
+            Array.from(optButtons).forEach(btn => btn.disabled = true);
+            document.getElementById('btn-next').classList.remove('hidden');
         }
 
-        function continueRunner() {
-            currentQIndex++;
-            document.getElementById('quiz-modal').style.display = 'none';
+        function confirmQuestionAndContinue() {
+            closeQuestionModal();
+        }
 
-            if (currentQIndex >= appData.questions.level1.length) {
-                endGame();
-            } else {
-                quizPaused = false;
-                startQuestionTimer();
+        function collectChestTreasure(chestIdx) {
+            playSound('treasure');
+
+            if (!collectedTreasures.has(chestIdx)) {
+                collectedTreasures.add(chestIdx);
+
+                // Hide chest mesh after collecting
+                if (chestObjects[chestIdx]) chestObjects[chestIdx].mesh.visible = false;
+
+                renderChecklistUI();
+                updateCountersUI();
+
+                const tItem = appData.questions[chestIdx].treasure;
+                alert(`🎉 恭喜找到秘宝：【${tItem.icon} ${tItem.name}】！已加入清单！`);
+
+                if (typeof confetti === 'function') {
+                    confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
+                }
+
+                // Check if exit gate unlocked
+                if (answeredQuestions.size === 13 && collectedTreasures.size === 13) {
+                    if (exitGateMesh) exitGateMesh.children[2].material.color.setHex(0x22c55e); // Green exit door
+                    alert("🌟 所有 13 个秘宝集齐！出口大门封印解除，快前往大门逃脱！");
+                }
             }
         }
 
-        function endGame() {
-            gameRunning = false;
-            clearInterval(timerInterval);
-            document.getElementById('quiz-modal').style.display = 'none';
+        function finishGame() {
+            if (timerInterval) clearInterval(timerInterval);
+            playSound('treasure');
 
-            const timeTaken = Math.round((Date.now() - gameStartTime) / 1000);
-            document.getElementById('res-score').innerText = score;
-            document.getElementById('res-correct').innerText = correctCount;
-            document.getElementById('res-time').innerText = `${timeTaken}秒`;
-
-            if (correctCount >= 6) {
-                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-                playSound('correct');
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 200, spread: 100, origin: { y: 0.5 } });
             }
 
-            appData.leaderboard.push({
-                name: currentUser.name,
-                score: score,
-                correct: correctCount,
-                time: timeTaken
-            });
-            appData.leaderboard.sort((a, b) => b.score - a.score || a.time - b.time);
+            const timeStr = `${Math.floor(timerSeconds / 60)}分 ${timerSeconds % 60}秒`;
 
-            saveDataLocally();
-            showScreen('screen-result');
+            const record = {
+                name: currentPupilName,
+                treasures: collectedTreasures.size,
+                timeSec: timerSeconds,
+                timeStr: timeStr,
+                date: new Date().toLocaleDateString()
+            };
+
+            leaderboardData.push(record);
+            leaderboardData.sort((a, b) => b.treasures - a.treasures || a.timeSec - b.timeSec);
+            saveLeaderboard();
+
+            document.getElementById('res-name').innerText = currentPupilName;
+            document.getElementById('res-time').innerText = timeStr;
+
+            hideAllViews();
+            document.getElementById('view-result').classList.remove('hidden');
         }
 
-        function renderLeaderboard() {
-            const tbody = document.getElementById('lb-body');
+        // ==========================================
+        // 7. LEADERBOARD DISPLAY
+        // ==========================================
+        function renderLeaderboardTable() {
+            const tbody = document.getElementById('leaderboard-body');
             tbody.innerHTML = '';
-            if (appData.leaderboard.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">暂无排行榜数据</td></tr>';
+
+            if (leaderboardData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-400 font-bold">尚无寻宝记录</td></tr>`;
                 return;
             }
-            appData.leaderboard.slice(0, 20).forEach((entry, idx) => {
-                let badge = `${idx + 1}`;
-                if (idx === 0) badge = '🏆 金奖';
-                else if (idx === 1) badge = '🥈 银奖';
-                else if (idx === 2) badge = '🥉 铜奖';
+
+            leaderboardData.forEach((item, index) => {
+                let badge = `${index + 1}`;
+                if (index === 0) badge = '🥇 1';
+                if (index === 1) badge = '🥈 2';
+                if (index === 2) badge = '🥉 3';
 
                 const tr = document.createElement('tr');
+                tr.className = index % 2 === 0 ? 'bg-white' : 'bg-emerald-50/60';
                 tr.innerHTML = `
-                    <td><strong>${badge}</strong></td>
-                    <td>${entry.name}</td>
-                    <td><strong style="color:#2E7D32;">${entry.score}</strong></td>
-                    <td>${entry.correct} / 10</td>
-                    <td>${entry.time} 秒</td>
+                    <td class="p-3 text-center font-black text-gray-700">${badge}</td>
+                    <td class="p-3 font-black text-emerald-900">${escapeHtml(item.name)}</td>
+                    <td class="p-3 text-center font-black text-emerald-600">💎 ${item.treasures}/13</td>
+                    <td class="p-3 text-center text-xs text-gray-500 font-bold">${item.timeStr}</td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        // --- 5. TEACHER DASHBOARD & DUAL-METHOD EDITOR ---
-        function promptTeacherPin() {
-            const pin = prompt("请输入教师后台密码：", "");
-            if (pin === "1234") {
-                renderDashboard();
-                showScreen('screen-dashboard');
-            } else if (pin !== null) {
-                alert("密码错误！默认密码为 1234");
+        // ==========================================
+        // 8. TEACHER DASHBOARD & DUAL-METHOD IMAGE EDITOR
+        // ==========================================
+        function openTeacherPinModal() {
+            playSound('click');
+            document.getElementById('input-pin').value = '';
+            document.getElementById('modal-pin').classList.remove('hidden');
+            document.getElementById('input-pin').focus();
+        }
+
+        function closeTeacherPinModal() {
+            document.getElementById('modal-pin').classList.add('hidden');
+        }
+
+        function verifyTeacherPin() {
+            const pin = document.getElementById('input-pin').value;
+            if (pin === '1234') {
+                closeTeacherPinModal();
+                showDashboard();
+            } else {
+                alert("PIN 码错误！默认密码是 1234");
             }
         }
 
-        function switchDashTab(tabId) {
-            document.querySelectorAll('.dash-tabs .tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.dash-content').forEach(c => c.style.display = 'none');
-            event.target.classList.add('active');
-            document.getElementById(tabId).style.display = 'block';
-            if (tabId === 'tab-analytics') renderAnalytics();
+        function showDashboard() {
+            hideAllViews();
+            renderDashboard();
+            document.getElementById('view-dashboard').classList.remove('hidden');
         }
 
         function renderDashboard() {
             document.getElementById('cfg-title').value = appData.config.title;
             document.getElementById('cfg-subject').value = appData.config.subject;
-            document.getElementById('cfg-year').value = appData.config.year;
+            document.getElementById('cfg-standard').value = appData.config.standard;
             document.getElementById('cfg-teacher').value = appData.config.teacher;
-            document.getElementById('cfg-fb-url').value = appData.config.firebaseUrl || '';
 
-            const container = document.getElementById('tab-q1');
-            container.innerHTML = `<h2>修改题目列表 (10题)</h2>`;
+            renderAnalytics();
 
-            appData.questions.level1.forEach((q, idx) => {
-                const slot = document.createElement('div');
-                slot.className = 'editor-slot';
-                slot.innerHTML = `
-                    <h3 style="color: var(--primary); margin-bottom: 8px;">题目 ${idx + 1}</h3>
-                    <label>题目文本：</label>
-                    <input type="text" value="${q.q}" onchange="updateQData(${idx}, 'q', this.value)">
+            const listContainer = document.getElementById('dashboard-questions-list');
+            listContainer.innerHTML = '';
 
-                    <div class="image-editor-box">
-                        <strong>🖼 题目图片设置（双重模式自动保存）：</strong>
-                        <div style="margin: 6px 0;">
-                            <label style="font-size:0.85rem;">方式 A: 图片网络链接 (URL / Google Drive 直链)</label>
-                            <input type="text" placeholder="https://..." value="${q.img.startsWith('data:') ? '' : q.img}" onchange="updateQData(${idx}, 'img', this.value)">
-                        </div>
-                        <div style="margin: 6px 0;">
-                            <label style="font-size:0.85rem;">方式 B: 本地图片文件上传 (Base64 Data URL 永久保存)</label><br>
-                            <input type="file" accept="image/*" onchange="handleFileUpload(event, ${idx})">
-                        </div>
-                        ${q.img ? `
+            appData.questions.forEach((q, idx) => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-2xl border-2 border-purple-200 shadow-sm space-y-4";
+                card.innerHTML = `
+                    <div class="flex justify-between items-center bg-purple-100 p-2 rounded-xl">
+                        <span class="font-bold text-purple-800 text-sm">第 ${idx + 1} 题 (ID: ${q.id})</span>
+                        <button onclick="deleteQuestion(${idx})" class="text-xs text-red-500 font-bold px-2 py-1 bg-red-100 rounded-lg">删除</button>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">题目文本:</label>
+                        <textarea onchange="updateQuestionField(${idx}, 'text', this.value)" class="w-full p-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-purple-500" rows="2">${escapeHtml(q.text)}</textarea>
+                    </div>
+
+                    <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-200">
+                        <label class="block text-xs font-bold text-emerald-900 mb-2">🖼️ 题目图片编辑器 (Dual-Method Image Editor)</label>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                             <div>
-                                <img src="${q.img}" class="preview-thumb"><br>
-                                <button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.8rem;" onclick="clearPhoto(${idx})">❌ 清除图片</button>
+                                <label class="block text-[11px] font-bold text-gray-600 mb-1">选项 A: 网络图片 URL / 谷歌驱动链接</label>
+                                <input type="text" placeholder="https://..." value="${q.image && !q.image.startsWith('data:') ? escapeHtml(q.image) : ''}" onchange="handleImageUrlInput(${idx}, this.value)" class="w-full p-2 border border-gray-300 rounded-lg text-xs">
                             </div>
-                        ` : ''}
+                            <div>
+                                <label class="block text-[11px] font-bold text-gray-600 mb-1">选项 B: 本地设备上传图片 (FileReader Base64)</label>
+                                <input type="file" accept="image/*" onchange="handleImageFileUpload(${idx}, this)" class="w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-purple-100 file:text-purple-700">
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-4 bg-white p-2 rounded-lg border border-emerald-200">
+                            <div class="text-xs text-gray-500 font-bold">实时预览:</div>
+                            <div class="flex-grow flex items-center">
+                                ${q.image ? `<img src="${q.image}" class="h-12 rounded border border-gray-300 object-contain mr-2"> <span class="text-xs text-emerald-600 font-bold">已插入图片</span>` : `<span class="text-xs text-gray-400 italic">无图片 (纯文字)</span>`}
+                            </div>
+                            ${q.image ? `<button onclick="clearQuestionImage(${idx})" class="px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-lg">清除图片</button>` : ''}
+                        </div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                        <div><label>选项 A:</label><input type="text" value="${q.options[0]}" onchange="updateOptionData(${idx}, 0, this.value)"></div>
-                        <div><label>选项 B:</label><input type="text" value="${q.options[1]}" onchange="updateOptionData(${idx}, 1, this.value)"></div>
-                        <div><label>选项 C:</label><input type="text" value="${q.options[2]}" onchange="updateOptionData(${idx}, 2, this.value)"></div>
-                        <div><label>选项 D:</label><input type="text" value="${q.options[3]}" onchange="updateOptionData(${idx}, 3, this.value)"></div>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
-                            <label>正确答案：</label>
-                            <select onchange="updateQData(${idx}, 'ans', parseInt(this.value))">
-                                <option value="0" ${q.ans === 0 ? 'selected' : ''}>选项 A</option>
-                                <option value="1" ${q.ans === 1 ? 'selected' : ''}>选项 B</option>
-                                <option value="2" ${q.ans === 2 ? 'selected' : ''}>选项 C</option>
-                                <option value="3" ${q.ans === 3 ? 'selected' : ''}>选项 D</option>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">选项 A:</label>
+                            <input type="text" value="${escapeHtml(q.options[0] || '')}" onchange="updateOptionField(${idx}, 0, this.value)" class="w-full p-2 border border-gray-300 rounded-lg text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">选项 B:</label>
+                            <input type="text" value="${escapeHtml(q.options[1] || '')}" onchange="updateOptionField(${idx}, 1, this.value)" class="w-full p-2 border border-gray-300 rounded-lg text-xs">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">正确答案:</label>
+                            <select onchange="updateQuestionField(${idx}, 'answer', parseInt(this.value))" class="w-full p-2 border border-gray-300 rounded-lg text-xs font-bold">
+                                <option value="0" ${q.answer === 0 ? 'selected' : ''}>选项 A: ${escapeHtml(q.options[0] || '')}</option>
+                                <option value="1" ${q.answer === 1 ? 'selected' : ''}>选项 B: ${escapeHtml(q.options[1] || '')}</option>
                             </select>
                         </div>
                         <div>
-                            <label>答对奖励分值：</label>
-                            <input type="number" value="${q.score || 10}" onchange="updateQData(${idx}, 'score', parseInt(this.value))">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">答案解析:</label>
+                            <input type="text" value="${escapeHtml(q.explanation || '')}" onchange="updateQuestionField(${idx}, 'explanation', this.value)" class="w-full p-2 border border-gray-300 rounded-lg text-xs">
                         </div>
                     </div>
-
-                    <label>答案解析：</label>
-                    <input type="text" value="${q.exp || ''}" onchange="updateQData(${idx}, 'exp', this.value)">
                 `;
-                container.appendChild(slot);
+                listContainer.appendChild(card);
             });
         }
 
-        function handleFileUpload(event, qIndex) {
-            const file = event.target.files[0];
+        function saveGlobalConfig() {
+            appData.config.title = document.getElementById('cfg-title').value.trim();
+            appData.config.subject = document.getElementById('cfg-subject').value.trim();
+            appData.config.standard = document.getElementById('cfg-standard').value.trim();
+            appData.config.teacher = document.getElementById('cfg-teacher').value.trim();
+            saveAppData();
+            alert("全局设置已保存！");
+        }
+
+        function updateQuestionField(index, field, value) {
+            appData.questions[index][field] = value;
+            saveAppData();
+        }
+
+        function updateOptionField(qIndex, optIndex, value) {
+            appData.questions[qIndex].options[optIndex] = value;
+            saveAppData();
+        }
+
+        function handleImageUrlInput(qIndex, url) {
+            appData.questions[qIndex].image = url.trim();
+            saveAppData();
+            renderDashboard();
+        }
+
+        function handleImageFileUpload(qIndex, inputEl) {
+            const file = inputEl.files[0];
             if (!file) return;
+
             const reader = new FileReader();
-            reader.onload = function(e) {
-                appData.questions.level1[qIndex].img = e.target.result;
-                saveDataLocally();
+            reader.onload = function (e) {
+                appData.questions[qIndex].image = e.target.result;
+                saveAppData();
                 renderDashboard();
             };
             reader.readAsDataURL(file);
         }
 
-        function clearPhoto(qIndex) {
-            appData.questions.level1[qIndex].img = "";
-            saveDataLocally();
+        function clearQuestionImage(qIndex) {
+            appData.questions[qIndex].image = "";
+            saveAppData();
             renderDashboard();
         }
 
-        function updateQData(qIndex, field, value) {
-            appData.questions.level1[qIndex][field] = value;
-            saveDataLocally();
+        function addNewQuestion() {
+            const newId = appData.questions.length > 0 ? Math.max(...appData.questions.map(q => q.id)) + 1 : 1;
+            appData.questions.push({
+                id: newId,
+                text: "新题目样本文本...",
+                image: "",
+                options: ["选项 A", "选项 B"],
+                answer: 0,
+                marks: 10,
+                explanation: "请输入解释说明",
+                treasure: { name: `新秘宝 ${newId}`, icon: "💎" }
+            });
+            saveAppData();
+            renderDashboard();
         }
 
-        function updateOptionData(qIndex, optIndex, value) {
-            appData.questions.level1[qIndex].options[optIndex] = value;
-            saveDataLocally();
-        }
-
-        function saveGeneralConfig() {
-            appData.config.title = document.getElementById('cfg-title').value;
-            appData.config.subject = document.getElementById('cfg-subject').value;
-            appData.config.year = document.getElementById('cfg-year').value;
-            appData.config.teacher = document.getElementById('cfg-teacher').value;
-            saveDataLocally();
-            renderHomepageInfo();
-            alert("配置已保存！");
-        }
-
-        function saveFirebaseConfig() {
-            appData.config.firebaseUrl = document.getElementById('cfg-fb-url').value.trim();
-            saveDataLocally();
-            alert("Firebase 配置已保存！");
+        function deleteQuestion(index) {
+            if (confirm("确定要删除此题目吗？")) {
+                appData.questions.splice(index, 1);
+                saveAppData();
+                renderDashboard();
+            }
         }
 
         function renderAnalytics() {
-            const container = document.getElementById('analytics-list');
-            container.innerHTML = '';
-            const keys = Object.keys(appData.mistakes);
-            if (keys.length === 0) {
-                container.innerHTML = '<p style="color:#888;">暂无答错记录。</p>';
+            const summaryEl = document.getElementById('analytics-summary');
+            const entries = Object.entries(errorAnalytics);
+            if (entries.length === 0) {
+                summaryEl.innerText = "暂无学生答错记录。";
                 return;
             }
-            keys.forEach(k => {
-                const div = document.createElement('div');
-                div.style.cssText = "padding: 10px; background: #FFEBEE; border-radius: 8px; margin-bottom: 8px; font-weight: bold;";
-                div.innerText = `${k} ➔ 错题次数: ${appData.mistakes[k]} 次`;
-                container.appendChild(div);
+            entries.sort((a, b) => b[1] - a[1]);
+            let html = '<ul class="list-disc list-inside space-y-1">';
+            entries.slice(0, 3).forEach(([qId, count]) => {
+                const q = appData.questions.find(item => item.id === parseInt(qId));
+                const textSnippet = q ? q.text.substring(0, 12) + "..." : `题目 ID ${qId}`;
+                html += `<li><span class="font-bold text-red-600">${textSnippet}</span> (错误 ${count} 次)</li>`;
             });
+            html += '</ul>';
+            summaryEl.innerHTML = html;
         }
 
         function exportDataJSON() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
-            const dlAnchor = document.createElement('a');
-            dlAnchor.setAttribute("href", dataStr);
-            dlAnchor.setAttribute("download", `Chinese_ForestRunner_Backup_${new Date().toISOString().slice(0,10)}.json`);
-            document.body.appendChild(dlAnchor);
-            dlAnchor.click();
-            dlAnchor.remove();
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `chinese_dino_game_data_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
         }
 
         function importDataJSON(event) {
             const file = event.target.files[0];
             if (!file) return;
+
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 try {
-                    const importedData = JSON.parse(e.target.result);
-                    if (importedData.config && importedData.questions) {
-                        appData = importedData;
-                        saveDataLocally();
-                        renderHomepageInfo();
+                    const imported = JSON.parse(e.target.result);
+                    if (imported && imported.questions && imported.config) {
+                        appData = imported;
+                        saveAppData();
                         renderDashboard();
-                        alert("JSON 数据成功恢复！");
+                        alert("数据导入成功！");
+                    } else {
+                        alert("JSON 文件格式不正确！");
                     }
-                } catch(err) { alert("文件解析错误！"); }
+                } catch (err) {
+                    alert("无法解析 JSON 文件！");
+                }
             };
             reader.readAsText(file);
         }
 
         function resetLeaderboard() {
-            if (confirm("确定要清空排行榜数据吗？")) {
-                appData.leaderboard = [];
-                saveDataLocally();
-                alert("排行榜已清空。");
+            if (confirm("确定要清空所有排行榜记录吗？")) {
+                leaderboardData = [];
+                saveLeaderboard();
+                alert("排行榜数据已清空。");
             }
         }
 
-        function restoreDefaults() {
-            if (confirm("确定重置回初始默认题目？")) {
-                appData = JSON.parse(JSON.stringify(DEFAULT_APP_DATA));
-                saveDataLocally();
-                renderHomepageInfo();
-                renderDashboard();
-                alert("恢复成功。");
-            }
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
-        window.onload = function() {
-            initStorage();
-        };
+        window.addEventListener('DOMContentLoaded', () => {
+            initDataStore();
+        });
     </script>
 </body>
 </html>
